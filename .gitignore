@@ -1,3 +1,29 @@
+# =========================
+# Custom: SNAP-Editor 프로젝트 전용 무시 파일
+# =========================
+
+# 1. 테스트용 대용량 미디어 파일 (절대 깃허브에 올리지 말 것)
+*.mp4
+*.wav
+*.avi
+*.mkv
+/videos/
+/audio/
+
+# 2. AI 모델 가중치 파일 (용량이 너무 커서 깃허브 터짐)
+*.pt
+*.bin
+*.safetensors
+/ai/models/
+
+# 3. 보안 및 로컬 환경 변수
+.env
+
+# 4. FFmpeg 인코딩 찌꺼기 파일
+*.log
+*.tmp
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
