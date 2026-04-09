@@ -1,5 +1,6 @@
 # 파일명: main.py
 # 분리해둔 두 파이썬 파일에서 필요한 함수만 불러옵니다.
+# 영상 파일은 업로드 용량 문제로 업로드 하지 않음
 from extract_audio import extract_audio
 from display_waveform import display_waveform
 
