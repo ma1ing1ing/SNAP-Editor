@@ -1,0 +1,1222 @@
+[
+  {
+    "start": "00:00:00",
+    "end": "00:00:04",
+    "duration": 4.48,
+    "raw_text": "안녕하세요.",
+    "cleaned_text": "안녕하세요.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:04",
+    "end": "00:00:06",
+    "duration": 2.06,
+    "raw_text": "반갑습니다.",
+    "cleaned_text": "반갑습니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:06",
+    "end": "00:00:07",
+    "duration": 1.22,
+    "raw_text": "여러분들.",
+    "cleaned_text": "여러분들.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:07",
+    "end": "00:00:08",
+    "duration": 1.0,
+    "raw_text": "창빈입니다.",
+    "cleaned_text": "창빈입니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:08",
+    "end": "00:00:16",
+    "duration": 8.04,
+    "raw_text": "여러분들과 옛날 아프리카TV 시절을 그리워하시는 분들이 많아서",
+    "cleaned_text": "여러분들과 옛날 아프리카TV 시절을 그리워하시는 분들이 많아서",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:16",
+    "end": "00:00:25",
+    "duration": 8.68,
+    "raw_text": "조금 리얼로 여러분들께 다가가려고 준비해 봤습니다.",
+    "cleaned_text": "조금 리얼로 여러분들께 다가가려고 준비해 봤습니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:25",
+    "end": "00:00:39",
+    "duration": 14.4,
+    "raw_text": "오늘은 짬뽕, 그 다음에 탕수육 세트를 주문했고요.",
+    "cleaned_text": "오늘은 짬뽕, 다음에 탕수육 세트를 주문했고요.",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:39",
+    "end": "00:00:43",
+    "duration": 3.68,
+    "raw_text": "여기는 길림성이라고 저희 집 근처에 있는 곳인데",
+    "cleaned_text": "여기는 길림성이라고 저희 집 근처에 있는 곳인데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:43",
+    "end": "00:00:47",
+    "duration": 3.52,
+    "raw_text": "요즘에 자체 배달 안 하잖아요.",
+    "cleaned_text": "요즘에 자체 배달 안 하잖아요.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:47",
+    "end": "00:00:49",
+    "duration": 2.2,
+    "raw_text": "근데 여기는 자체 배달을 하더라고요.",
+    "cleaned_text": "근데 여기는 자체 배달을 하더라고요.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:49",
+    "end": "00:00:53",
+    "duration": 3.96,
+    "raw_text": "그래서 주문한 거는 2만 원인데",
+    "cleaned_text": "그래서 주문한 거는 2만 원인데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:53",
+    "end": "00:00:58",
+    "duration": 5.6,
+    "raw_text": "그 1,000원 할인 쿠폰이 있어서",
+    "cleaned_text": "1,000원 할인 쿠폰이 있어서",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:00:58",
+    "end": "00:01:00",
+    "duration": 1.88,
+    "raw_text": "19,000원에 준비했습니다.",
+    "cleaned_text": "19,000원에 준비했습니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:00",
+    "end": "00:01:01",
+    "duration": 1.0,
+    "raw_text": "맛있게 먹겠습니다.",
+    "cleaned_text": "맛있게 먹겠습니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:01",
+    "end": "00:01:08",
+    "duration": 6.8,
+    "raw_text": "짬뽕 오랜만에 먹습니다.",
+    "cleaned_text": "짬뽕 오랜만에 먹습니다.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:08",
+    "end": "00:01:19",
+    "duration": 11.2,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:01:19",
+    "end": "00:01:22",
+    "duration": 2.28,
+    "raw_text": "아직 뜨거워요.",
+    "cleaned_text": "아직 뜨거워요.",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:22",
+    "end": "00:01:24",
+    "duration": 2.0,
+    "raw_text": "아직 뜨거워요 와우",
+    "cleaned_text": "아직 뜨거워요 와우",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:24",
+    "end": "00:01:26",
+    "duration": 2.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:01:26",
+    "end": "00:01:33",
+    "duration": 7.14,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:01:33",
+    "end": "00:01:39",
+    "duration": 6.4,
+    "raw_text": "호호czy",
+    "cleaned_text": "호호czy",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:39",
+    "end": "00:01:47",
+    "duration": 7.76,
+    "raw_text": "러줌",
+    "cleaned_text": "러줌",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:47",
+    "end": "00:01:50",
+    "duration": 3.0,
+    "raw_text": "당수육도 뜨거우니까 맛있네요",
+    "cleaned_text": "당수육도 뜨거우니까 맛있네요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:01:50",
+    "end": "00:02:06",
+    "duration": 16.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:02:06",
+    "end": "00:02:10",
+    "duration": 4.0,
+    "raw_text": "그리고 또 옛날처럼 이렇게 여러분들하고 이렇게",
+    "cleaned_text": "그리고 또 옛날처럼 이렇게 여러분들하고 이렇게",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:10",
+    "end": "00:02:13",
+    "duration": 3.0,
+    "raw_text": "이렇게 이렇게 이렇게 이렇게 이렇게",
+    "cleaned_text": "이렇게",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:13",
+    "end": "00:02:16",
+    "duration": 3.0,
+    "raw_text": "이렇게 먹는 먹방이 편하긴 한데",
+    "cleaned_text": "이렇게 먹는 먹방이 편하긴 한데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:16",
+    "end": "00:02:17",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:02:17",
+    "end": "00:02:21",
+    "duration": 4.0,
+    "raw_text": "어쨌든 이렇게 이렇게 통해서 여러분들과 만나면 좋을 것 같습니다",
+    "cleaned_text": "어쨌든 이렇게 통해서 여러분들과 만나면 좋을 것 같습니다",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:21",
+    "end": "00:02:29",
+    "duration": 8.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:02:29",
+    "end": "00:02:31",
+    "duration": 2.0,
+    "raw_text": "음, 전라도 무김치",
+    "cleaned_text": "전라도 무김치",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:31",
+    "end": "00:02:43",
+    "duration": 12.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:02:43",
+    "end": "00:02:46",
+    "duration": 3.0,
+    "raw_text": "제가 아직 감기가 다 안 나서 호로록 하고 싶은데",
+    "cleaned_text": "제가 아직 감기가 다 안 나서 호로록 하고 싶은데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:46",
+    "end": "00:02:48",
+    "duration": 2.0,
+    "raw_text": "살이 걸릴까봐",
+    "cleaned_text": "살이 걸릴까봐",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:02:48",
+    "end": "00:03:13",
+    "duration": 25.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:03:13",
+    "end": "00:03:15",
+    "duration": 2.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:03:15",
+    "end": "00:03:43",
+    "duration": 28.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:03:43",
+    "end": "00:03:46",
+    "duration": 3.0,
+    "raw_text": "약간 중식 오랜만에 먹으니까 되게 맛있네요",
+    "cleaned_text": "약간 중식 오랜만에 먹으니까 되게 맛있네요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:03:46",
+    "end": "00:03:59",
+    "duration": 13.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:03:59",
+    "end": "00:04:01",
+    "duration": 2.0,
+    "raw_text": "제가 그 짬뽕집을",
+    "cleaned_text": "제가 짬뽕집을",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:01",
+    "end": "00:04:04",
+    "duration": 3.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:04",
+    "end": "00:04:06",
+    "duration": 2.0,
+    "raw_text": "짬뽕타운 24시? 25시?",
+    "cleaned_text": "짬뽕타운 24시? 25시?",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:06",
+    "end": "00:04:07",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:07",
+    "end": "00:04:09",
+    "duration": 2.0,
+    "raw_text": "아, 제가 그 짬뽕집을",
+    "cleaned_text": "제가 짬뽕집을",
+    "filler_count": 2,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:09",
+    "end": "00:04:10",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:10",
+    "end": "00:04:14",
+    "duration": 4.0,
+    "raw_text": "짬뽕타운 24시? 25시? 짬뽕타인?",
+    "cleaned_text": "짬뽕타운 24시? 25시? 짬뽕타인?",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:14",
+    "end": "00:04:15",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:15",
+    "end": "00:04:17",
+    "duration": 2.0,
+    "raw_text": "그 집을 되게 좋아했는데",
+    "cleaned_text": "집을 되게 좋아했는데",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:17",
+    "end": "00:04:18",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:18",
+    "end": "00:04:20",
+    "duration": 2.0,
+    "raw_text": "추원에 영통에 있었는데",
+    "cleaned_text": "추원에 영통에 있었는데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:20",
+    "end": "00:04:23",
+    "duration": 3.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:23",
+    "end": "00:04:25",
+    "duration": 2.0,
+    "raw_text": "그 집이 없어져가지고",
+    "cleaned_text": "집이 없어져가지고",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:25",
+    "end": "00:04:31",
+    "duration": 6.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:31",
+    "end": "00:04:34",
+    "duration": 3.0,
+    "raw_text": "친구하고 혼이 닿긴 짬뽕이라고 갔는데",
+    "cleaned_text": "친구하고 혼이 닿긴 짬뽕이라고 갔는데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:34",
+    "end": "00:04:37",
+    "duration": 3.0,
+    "raw_text": "엄청 줄 서있는 거예요, 그래서 기대 엄청 했는데",
+    "cleaned_text": "엄청 줄 서있는 거예요, 그래서 기대 엄청 했는데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:37",
+    "end": "00:04:40",
+    "duration": 3.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:40",
+    "end": "00:04:42",
+    "duration": 2.0,
+    "raw_text": "너무 별로였습니다",
+    "cleaned_text": "너무 별로였습니다",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:42",
+    "end": "00:04:43",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:43",
+    "end": "00:04:45",
+    "duration": 2.0,
+    "raw_text": "근데 짬뽕이 만삼천원",
+    "cleaned_text": "근데 짬뽕이 만삼천원",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:45",
+    "end": "00:04:46",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:46",
+    "end": "00:04:49",
+    "duration": 3.0,
+    "raw_text": "그 공깃밥 조금 이렇게 주고 만삼천원인데",
+    "cleaned_text": "공깃밥 조금 이렇게 주고 만삼천원인데",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:49",
+    "end": "00:04:50",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:04:50",
+    "end": "00:04:52",
+    "duration": 2.0,
+    "raw_text": "저는 다시는 안 갈 것 같긴 해요",
+    "cleaned_text": "저는 다시는 안 갈 것 같긴 해요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:04:52",
+    "end": "00:05:01",
+    "duration": 9.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:01",
+    "end": "00:05:02",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:05:02",
+    "end": "00:05:04",
+    "duration": 2.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:04",
+    "end": "00:05:05",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:05:05",
+    "end": "00:05:23",
+    "duration": 18.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:23",
+    "end": "00:05:25",
+    "duration": 2.0,
+    "raw_text": "개인적인 취향이니까",
+    "cleaned_text": "개인적인 취향이니까",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:05:25",
+    "end": "00:05:29",
+    "duration": 4.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:29",
+    "end": "00:05:32",
+    "duration": 3.0,
+    "raw_text": "줄 서 있다는 거는 좋아하시는 분들도 많다는 거겠죠",
+    "cleaned_text": "줄 서 있다는 거는 좋아하시는 분들도 많다는 거겠죠",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:05:32",
+    "end": "00:05:34",
+    "duration": 2.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:34",
+    "end": "00:05:36",
+    "duration": 2.0,
+    "raw_text": "저는 조금 그냥 그러니까",
+    "cleaned_text": "저는 조금 그냥 그러니까",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:05:36",
+    "end": "00:05:37",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:37",
+    "end": "00:05:41",
+    "duration": 4.0,
+    "raw_text": "맛이 없다 이게 아니라 만삼천원에 줄까지 서서",
+    "cleaned_text": "맛이 없다 이게 아니라 만삼천원에 줄까지 서서",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:05:41",
+    "end": "00:05:42",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:05:42",
+    "end": "00:05:45",
+    "duration": 3.0,
+    "raw_text": "먹어야 된다 하면 저는 안 갈 것 같다 약간 이런 느낌",
+    "cleaned_text": "먹어야 된다 하면 저는 안 갈 것 같다 약간 이런 느낌",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:05:45",
+    "end": "00:06:04",
+    "duration": 19.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:04",
+    "end": "00:06:06",
+    "duration": 2.0,
+    "raw_text": "이번에 무김치가",
+    "cleaned_text": "이번에 무김치가",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:06",
+    "end": "00:06:08",
+    "duration": 2.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:08",
+    "end": "00:06:12",
+    "duration": 4.0,
+    "raw_text": "저 혼자 먹기에는 조금 많이 받아서 그런데",
+    "cleaned_text": "혼자 먹기에는 조금 많이 받아서 그런데",
+    "filler_count": 1,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:12",
+    "end": "00:06:13",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:13",
+    "end": "00:06:15",
+    "duration": 2.0,
+    "raw_text": "무 자체에 수분이 엄청 많아요 달고",
+    "cleaned_text": "무 자체에 수분이 엄청 많아요 달고",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:15",
+    "end": "00:06:16",
+    "duration": 1.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:16",
+    "end": "00:06:17",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:06:17",
+    "end": "00:06:34",
+    "duration": 17.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:34",
+    "end": "00:06:37",
+    "duration": 3.0,
+    "raw_text": "이거 먹을 때 아마 여러분들 느끼셨을 텐데",
+    "cleaned_text": "이거 먹을 때 아마 여러분들 느끼셨을 텐데",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:37",
+    "end": "00:06:39",
+    "duration": 2.0,
+    "raw_text": "약간 수박 먹는 소리 나는 것처럼",
+    "cleaned_text": "약간 수박 먹는 소리 나는 것처럼",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:39",
+    "end": "00:06:45",
+    "duration": 6.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:06:45",
+    "end": "00:06:46",
+    "duration": 1.0,
+    "raw_text": "수분기가 많아요",
+    "cleaned_text": "수분기가 많아요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:46",
+    "end": "00:06:47",
+    "duration": 1.0,
+    "raw_text": "수분기가 많아요",
+    "cleaned_text": "수분기가 많아요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:06:47",
+    "end": "00:07:16",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:07:16",
+    "end": "00:07:17",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:07:17",
+    "end": "00:07:46",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:07:46",
+    "end": "00:07:47",
+    "duration": 1.0,
+    "raw_text": "와",
+    "cleaned_text": "와",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:07:47",
+    "end": "00:07:58",
+    "duration": 11.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:07:58",
+    "end": "00:08:00",
+    "duration": 2.0,
+    "raw_text": "밥 조금 말아가지고",
+    "cleaned_text": "밥 조금 말아가지고",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:08:00",
+    "end": "00:08:01",
+    "duration": 1.0,
+    "raw_text": "먹어볼게요",
+    "cleaned_text": "먹어볼게요",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:08:01",
+    "end": "00:08:07",
+    "duration": 6.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:08:07",
+    "end": "00:08:08",
+    "duration": 1.0,
+    "raw_text": "와우",
+    "cleaned_text": "와우",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:08:08",
+    "end": "00:08:16",
+    "duration": 8.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:08:16",
+    "end": "00:08:17",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:08:17",
+    "end": "00:08:40",
+    "duration": 23.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:08:40",
+    "end": "00:08:41",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:08:41",
+    "end": "00:08:46",
+    "duration": 5.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:08:46",
+    "end": "00:08:47",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:08:47",
+    "end": "00:09:16",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:09:16",
+    "end": "00:09:17",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:09:17",
+    "end": "00:09:46",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:09:46",
+    "end": "00:09:47",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:09:47",
+    "end": "00:10:16",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:10:16",
+    "end": "00:10:17",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:10:17",
+    "end": "00:10:46",
+    "duration": 29.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:10:46",
+    "end": "00:10:47",
+    "duration": 1.0,
+    "raw_text": "음",
+    "cleaned_text": "",
+    "filler_count": 1,
+    "action": "remove",
+    "reason": "empty_after_cleaning"
+  },
+  {
+    "start": "00:10:47",
+    "end": "00:11:17",
+    "duration": 30.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:11:17",
+    "end": "00:11:18",
+    "duration": 1.0,
+    "raw_text": "와",
+    "cleaned_text": "와",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:11:18",
+    "end": "00:11:24",
+    "duration": 6.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:11:24",
+    "end": "00:11:25",
+    "duration": 1.0,
+    "raw_text": "와",
+    "cleaned_text": "와",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:11:25",
+    "end": "00:11:26",
+    "duration": 1.0,
+    "raw_text": "대박",
+    "cleaned_text": "대박",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:11:26",
+    "end": "00:11:29",
+    "duration": 3.0,
+    "raw_text": "",
+    "cleaned_text": "",
+    "filler_count": 0,
+    "action": "remove",
+    "reason": "silence"
+  },
+  {
+    "start": "00:11:29",
+    "end": "00:11:32",
+    "duration": 3.0,
+    "raw_text": "이거는 계속해서 먹도록 하겠습니다",
+    "cleaned_text": "이거는 계속해서 먹도록 하겠습니다",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  },
+  {
+    "start": "00:11:32",
+    "end": "00:11:35",
+    "duration": 3.0,
+    "raw_text": "영상은 지루하니까 여기까지 안녕",
+    "cleaned_text": "영상은 지루하니까 여기까지 안녕",
+    "filler_count": 0,
+    "action": "keep",
+    "reason": "contains_meaningful_text"
+  }
+]
