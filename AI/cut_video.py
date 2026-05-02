@@ -4,6 +4,7 @@ import json
 import whisper
 from kiwipiepy import Kiwi
 
+
 INPUT_VIDEO = "input.mp4"
 OUTPUT_JSON = "output/output.json"
 
@@ -13,7 +14,6 @@ LANGUAGE = "ko"
 FILLER_WORDS = ["어", "음", "아", "그", "어어", "음음", "저", "뭐", "그러니까"]
 
 MIN_DURATION = 0.3
-SILENCE_THRESHOLD = 1.0  # 1초 이상 말이 없으면 무음구간으로 판단
 
 kiwi = Kiwi()
 os.makedirs("output", exist_ok=True)
@@ -23,15 +23,21 @@ def format_time(seconds: float) -> str:
     hours = int(seconds // 3600)
     minutes = int((seconds % 3600) // 60)
     secs = int(seconds % 60)
+    ms = int((seconds - int(seconds)) * 1000)
 
-    return f"{hours:02}:{minutes:02}:{secs:02}"
+    return f"{hours:02}:{minutes:02}:{secs:02}.{ms:03}"
 
 
 def normalize_word(word: str) -> str:
+    """문장부호 제거"""
     return re.sub(r"[^\w가-힣]", "", word).strip()
 
 
 def is_filler_by_kiwi(word: str) -> bool:
+    """
+    추임새 후보 단어인지 확인하고,
+    Kiwi가 감탄사(IC)로 판단하면 추임새로 처리
+    """
     clean_word = normalize_word(word)
 
     if clean_word not in FILLER_WORDS:
@@ -50,6 +56,7 @@ def is_filler_by_kiwi(word: str) -> bool:
 
 
 def remove_filler_words(text: str) -> str:
+    """추임새 제거"""
     words = text.split()
     result = []
 
@@ -61,6 +68,7 @@ def remove_filler_words(text: str) -> str:
 
 
 def remove_repeated_words(text: str) -> str:
+    """연속 반복 단어 제거"""
     words = text.split()
 
     if not words:
@@ -79,6 +87,7 @@ def remove_repeated_words(text: str) -> str:
 
 
 def clean_text(text: str) -> str:
+    """자막/분석용 텍스트 정제"""
     text = text.strip()
     text = re.sub(r"\s+", " ", text)
 
@@ -90,6 +99,7 @@ def clean_text(text: str) -> str:
 
 
 def count_filler_words(text: str) -> int:
+    """문장 안의 추임새 개수 계산"""
     words = text.split()
     count = 0
 
@@ -101,6 +111,12 @@ def count_filler_words(text: str) -> int:
 
 
 def decide_action(raw_text: str, cleaned_text: str, duration: float):
+    """
+    컷 편집 여부 판단
+    action:
+    - keep: 유지
+    - remove: 삭제 추천
+    """
     raw_words = raw_text.split()
     cleaned_words = cleaned_text.split()
     filler_count = count_filler_words(raw_text)
@@ -118,97 +134,36 @@ def decide_action(raw_text: str, cleaned_text: str, duration: float):
         return "remove", "low_meaning_text"
 
     return "keep", "contains_meaningful_text"
-
-
-def make_speech_segment(seg):
-    start = float(seg["start"])
-    end = float(seg["end"])
-    duration = end - start
-
-    raw_text = seg["text"].strip()
-    cleaned = clean_text(raw_text)
-
-    action, reason = decide_action(raw_text, cleaned, duration)
-
-    return {
-        "start_seconds": start,
-        "end_seconds": end,
-        "start": format_time(start),
-        "end": format_time(end),
-        "duration": round(duration, 3),
-        "raw_text": raw_text,
-        "cleaned_text": cleaned,
-        "filler_count": count_filler_words(raw_text),
-        "action": action,
-        "reason": reason
-    }
-
-
-def make_silence_segment(start: float, end: float):
-    duration = end - start
-
-    return {
-        "start_seconds": start,
-        "end_seconds": end,
-        "start": format_time(start),
-        "end": format_time(end),
-        "duration": round(duration, 3),
-        "raw_text": "",
-        "cleaned_text": "",
-        "filler_count": 0,
-        "action": "remove",
-        "reason": "silence"
-    }
-
-
-def add_silence_segments(speech_segments):
-    result = []
-
-    for i, current in enumerate(speech_segments):
-        result.append(current)
-
-        if i < len(speech_segments) - 1:
-            current_end = current["end_seconds"]
-            next_start = speech_segments[i + 1]["start_seconds"]
-            silence_duration = next_start - current_end
-
-            if silence_duration >= SILENCE_THRESHOLD:
-                silence_segment = make_silence_segment(current_end, next_start)
-                result.append(silence_segment)
-
-    return result
-
-
-def remove_internal_seconds(data):
-    cleaned_data = []
-
-    for item in data:
-        item_copy = item.copy()
-        item_copy.pop("start_seconds", None)
-        item_copy.pop("end_seconds", None)
-        cleaned_data.append(item_copy)
-
-    return cleaned_data
-
+ 
 
 def save_segments_to_json(segments):
-    speech_segments = []
+    data = []
 
     for seg in segments:
-        speech_segment = make_speech_segment(seg)
-        speech_segments.append(speech_segment)
+        start = float(seg["start"])
+        end = float(seg["end"])
+        duration = end - start
 
-    final_segments = add_silence_segments(speech_segments)
+        raw_text = seg["text"].strip()
+        cleaned = clean_text(raw_text)
 
-    final_segments.sort(key=lambda x: x["start_seconds"])
+        action, reason = decide_action(raw_text, cleaned, duration)
 
-    output_data = remove_internal_seconds(final_segments)
+        data.append({
+            "start": format_time(start),
+            "end": format_time(end),
+            "duration": round(duration, 3),
+            "raw_text": raw_text,
+            "cleaned_text": cleaned,
+            "filler_count": count_filler_words(raw_text),
+            "action": action,
+            "reason": reason
+        })
 
     with open(OUTPUT_JSON, "w", encoding="utf-8") as f:
-        json.dump(output_data, f, ensure_ascii=False, indent=2)
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
     print(f"\n{OUTPUT_JSON} 저장 완료!")
-
 
 def main():
     if not os.path.exists(INPUT_VIDEO):
