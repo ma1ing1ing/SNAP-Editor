@@ -1,0 +1,180 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1470</width>
+    <height>832</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>알잘딱깔센</string>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QVBoxLayout" name="verticalLayout_main">
+    <item>
+     <layout class="QHBoxLayout" name="layout_top">
+      <item>
+       <widget class="QPushButton" name="btn_open_file">
+        <property name="text">
+         <string>파일 열기</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_file_path">
+        <property name="text">
+         <string>선택된 파일 없음</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_top">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_domain">
+        <property name="text">
+         <string>도메인:</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="combo_domain">
+        <item>
+         <property name="text">
+          <string>교수 강의</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>gaming</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layout_main">
+      <item>
+       <layout class="QVBoxLayout" name="layout_left">
+        <item>
+         <widget class="QFrame" name="video_frame">
+          <property name="minimumSize">
+           <size>
+            <width>640</width>
+            <height>360</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::Box</enum>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <layout class="QHBoxLayout" name="layout_controls">
+          <item>
+           <widget class="QPushButton" name="btn_play">
+            <property name="text">
+             <string>▶</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="btn_pause">
+            <property name="text">
+             <string>⏸</string>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QSlider" name="slider_timeline">
+            <property name="orientation">
+             <enum>Qt::Horizontal</enum>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QLabel" name="label_time">
+            <property name="text">
+             <string>00:00 / 00:00</string>
+            </property>
+           </widget>
+          </item>
+         </layout>
+        </item>
+        <item>
+         <widget class="QFrame" name="timeline_frame">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>100</height>
+           </size>
+          </property>
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="layout_right">
+        <item>
+         <widget class="QLabel" name="label_subtitle_title">
+          <property name="text">
+           <string>자막 스크립트</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QListWidget" name="list_subtitles"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <layout class="QHBoxLayout" name="layout_bottom">
+      <item>
+       <widget class="QPushButton" name="btn_start_process">
+        <property name="text">
+         <string>처리 시작</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QProgressBar" name="progress_bar">
+        <property name="value">
+         <number>0</number>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="label_status">
+        <property name="text">
+         <string>대기 중</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </item>
+   </layout>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
