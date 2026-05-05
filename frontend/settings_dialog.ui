@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>SettingsDialog</class>
+ <widget class="QDialog" name="SettingsDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>400</width>
+    <height>458</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>400</width>
+    <height>300</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>설정</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_main">
+   <item>
+    <widget class="QGroupBox" name="group_silence">
+     <property name="title">
+      <string>무음 구간 기준</string>
+     </property>
+     <layout class="QHBoxLayout" name="layout_silence">
+      <item>
+       <widget class="QLabel" name="label_silence">
+        <property name="text">
+         <string>최소 무음 길이 (초)</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QDoubleSpinBox" name="spin_silence_threshold">
+        <property name="minimum">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="maximum">
+         <double>10.000000000000000</double>
+        </property>
+        <property name="singleStep">
+         <double>0.100000000000000</double>
+        </property>
+        <property name="value">
+         <double>0.500000000000000</double>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="group_dictionary">
+     <property name="title">
+      <string>커스텀 단어장 (하이라이트)</string>
+     </property>
+     <layout class="QVBoxLayout" name="layout_dictionary">
+      <item>
+       <layout class="QHBoxLayout" name="layout_input">
+        <item>
+         <widget class="QLineEdit" name="input_word">
+          <property name="text">
+           <string>펜타킬, 스틸, 백도어, 한타</string>
+          </property>
+          <property name="placeholderText">
+           <string>단어 입력 (예: 음, 어, 그니까)</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_add_word">
+          <property name="text">
+           <string>추가</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QListWidget" name="list_words"/>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="layout_remove">
+        <item>
+         <spacer name="horizontalSpacer_dict">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>0</width>
+            <height>0</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_remove_word">
+          <property name="text">
+           <string>선택 삭제</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="layout_buttons">
+     <item>
+      <spacer name="horizontalSpacer_buttons">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>0</width>
+         <height>0</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_cancel">
+       <property name="text">
+        <string>취소</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="btn_save_settings">
+       <property name="text">
+        <string>저장</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>
+3
