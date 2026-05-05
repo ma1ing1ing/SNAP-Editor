@@ -83,28 +83,55 @@
        <widget class="QListWidget" name="list_words"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="layout_remove">
+       <layout class="QHBoxLayout" name="layout_remove"/>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="group_ai">
+     <property name="title">
+      <string>AI 모델 설정</string>
+     </property>
+     <layout class="QHBoxLayout" name="layout_ai">
+      <item>
+       <widget class="QLabel" name="label_whisper_model">
+        <property name="text">
+         <string>Whisper 모델 크기</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="combo_whisper_model">
+        <property name="currentIndex">
+         <number>3</number>
+        </property>
         <item>
-         <spacer name="horizontalSpacer_dict">
-          <property name="orientation">
-           <enum>Qt::Horizontal</enum>
-          </property>
-          <property name="sizeHint" stdset="0">
-           <size>
-            <width>0</width>
-            <height>0</height>
-           </size>
-          </property>
-         </spacer>
+         <property name="text">
+          <string>tiny   (가장 빠름, 정확도 낮음)</string>
+         </property>
         </item>
         <item>
-         <widget class="QPushButton" name="btn_remove_word">
-          <property name="text">
-           <string>선택 삭제</string>
-          </property>
-         </widget>
+         <property name="text">
+          <string>base   (빠름)</string>
+         </property>
         </item>
-       </layout>
+        <item>
+         <property name="text">
+          <string>small  (균형)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>medium (권장, 정확도 높음)</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>large  (가장 느림, 정확도 최고)</string>
+         </property>
+        </item>
+       </widget>
       </item>
      </layout>
     </widget>
@@ -145,4 +172,3 @@
  <resources/>
  <connections/>
 </ui>
-3

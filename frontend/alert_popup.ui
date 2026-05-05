@@ -2,14 +2,22 @@
 <ui version="4.0">
  <class>AlertPopup</class>
  <widget class="QDialog" name="AlertPopup">
-  <property name="windowTitle">
-   <string>분석 결과</string>
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>360</width>
+    <height>230</height>
+   </rect>
   </property>
   <property name="minimumSize">
    <size>
     <width>360</width>
     <height>200</height>
    </size>
+  </property>
+  <property name="windowTitle">
+   <string>분석 완료</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_main">
    <item>
@@ -18,15 +26,27 @@
       <widget class="QLabel" name="label_icon">
        <property name="minimumSize">
         <size>
-         <width>48</width>
-         <height>48</height>
+         <width>40</width>
+         <height>40</height>
+        </size>
+       </property>
+       <property name="maximumSize">
+        <size>
+         <width>40</width>
+         <height>40</height>
         </size>
        </property>
        <property name="text">
-        <string>✂️</string>
+        <string/>
+       </property>
+       <property name="pixmap">
+        <pixmap>icons/편집완료 아이콘.png</pixmap>
+       </property>
+       <property name="scaledContents">
+        <bool>true</bool>
        </property>
        <property name="alignment">
-        <set>Qt::AlignCenter</set>
+        <set>Qt::AlignmentFlag::AlignCenter</set>
        </property>
       </widget>
      </item>
@@ -35,14 +55,14 @@
        <item>
         <widget class="QLabel" name="label_title">
          <property name="text">
-          <string>편집 제안 완료!</string>
+          <string>분석이 완료됐습니다.</string>
          </property>
         </widget>
        </item>
        <item>
         <widget class="QLabel" name="label_summary">
          <property name="text">
-          <string>컷편집 기준 4개, 약 28초 단축됩니다.</string>
+          <string>아래 목록에서 각 구간을 확인하고 O / X 를 선택해주세요.</string>
          </property>
          <property name="wordWrap">
           <bool>true</bool>
@@ -56,20 +76,20 @@
    <item>
     <widget class="QFrame" name="frame_details">
      <property name="frameShape">
-      <enum>QFrame::StyledPanel</enum>
+      <enum>QFrame::Shape::StyledPanel</enum>
      </property>
      <layout class="QVBoxLayout" name="layout_details">
       <item>
-       <widget class="QLabel" name="label_cut_count">
+       <widget class="QLabel" name="label_silence_count">
         <property name="text">
-         <string>컷 개수: 4</string>
+         <string>🔴  무음 구간: 0개</string>
         </property>
        </widget>
       </item>
       <item>
-       <widget class="QLabel" name="label_reduction">
+       <widget class="QLabel" name="label_keyword_count">
         <property name="text">
-         <string>총 단축 시간: 00:28</string>
+         <string>🟡  키워드 감지: 0개</string>
         </property>
        </widget>
       </item>
@@ -81,7 +101,7 @@
      <item>
       <spacer name="horizontalSpacer_buttons">
        <property name="orientation">
-        <enum>Qt::Horizontal</enum>
+        <enum>Qt::Orientation::Horizontal</enum>
        </property>
        <property name="sizeHint" stdset="0">
         <size>
@@ -92,16 +112,9 @@
       </spacer>
      </item>
      <item>
-      <widget class="QPushButton" name="btn_cancel_edit">
+      <widget class="QPushButton" name="btn_confirm">
        <property name="text">
-        <string>취소</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="btn_apply_edit">
-       <property name="text">
-        <string>적용하기</string>
+        <string>확인</string>
        </property>
       </widget>
      </item>
