@@ -25,8 +25,8 @@ def detect_and_tag_silence(audio_path, threshold=0.3, min_silence_duration_ms=50
         min_silence_duration_ms=min_silence_duration_ms, 
         # 최소 목소리 길이 ("헛기침" 같은 짧은 소리를 배제함)
         min_speech_duration_ms=min_speech_duration_ms,
-        # 여백(0.2초)
-        speech_pad_ms=200
+        # 여백(0.15초)
+        speech_pad_ms=150
     )
     
     # 3. 무음 구간(Silence) 타임코드 계산
