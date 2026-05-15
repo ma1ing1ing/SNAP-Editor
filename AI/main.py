@@ -3,6 +3,7 @@ import re
 import json
 import whisper
 from pathlib import Path
+from collections import Counter
 from kiwipiepy import Kiwi
 
 
@@ -17,10 +18,18 @@ MODEL_SIZE = "medium"
 LANGUAGE = "ko"
 
 MIN_DURATION = 0.3
-SILENCE_THRESHOLD = 1.0
 
 STOPWORDS_PATH = Path(__file__).parent / "stopwords_ko.json"
 STOPWORD_MODE = "default"
+
+# 말버릇 후보 단어
+HABIT_WORDS = [
+    "진짜", "약간", "그냥", "뭔가", "이제",
+    "사실", "막", "아니", "뭐랄까", "그래서"
+]
+
+# 몇 번 이상 나오면 말버릇으로 판단할지
+HABIT_MIN_COUNT = 3
 
 kiwi = Kiwi()
 os.makedirs(OUTPUT_DIR, exist_ok=True)
@@ -81,8 +90,35 @@ def classify_filler(word: str) -> bool:
     return False
 
 
+# 영상 전체에서 말버릇 단어 빈도 분석
+def get_habit_words(segments):
+    word_count = Counter()
+
+    for seg in segments:
+        words = seg.get("words", [])
+
+        for w in words:
+            word = normalize_word(w["word"].strip())
+
+            if word in HABIT_WORDS:
+                word_count[word] += 1
+
+    detected_habits = {
+        word for word, count in word_count.items()
+        if count >= HABIT_MIN_COUNT
+    }
+
+    print("\n말버릇 단어 빈도:")
+    for word, count in word_count.items():
+        print(f"{word}: {count}회")
+
+    print(f"\n말버릇으로 판단된 단어: {list(detected_habits)}")
+
+    return detected_habits
+
+
 # 유지 단어 / 제거 단어 분리
-def filter_text(words):
+def filter_text(words, detected_habits):
     kept_words = []
     cut_words = []
     prev_word = None
@@ -92,6 +128,8 @@ def filter_text(words):
 
         if not word:
             continue
+
+        clean_word = normalize_word(word)
 
         token = {
             "word": word,
@@ -104,15 +142,18 @@ def filter_text(words):
             cut_words.append(token)
             continue
 
-        current_word = normalize_word(word)
+        if clean_word in detected_habits:
+            token["reason"] = "habit"
+            cut_words.append(token)
+            continue
 
-        if current_word and current_word == prev_word:
+        if clean_word and clean_word == prev_word:
             token["reason"] = "repeated"
             cut_words.append(token)
             continue
 
         kept_words.append(token)
-        prev_word = current_word
+        prev_word = clean_word
 
     return kept_words, cut_words
 
@@ -129,27 +170,6 @@ def transcribe(video_path: str):
     )
 
     return result["segments"]
-
-
-# 무음 구간 탐지
-def detect_silence(segments):
-    silence_list = []
-
-    for i in range(len(segments) - 1):
-        current_end = float(segments[i]["end"])
-        next_start = float(segments[i + 1]["start"])
-
-        silence_duration = next_start - current_end
-
-        if silence_duration >= SILENCE_THRESHOLD:
-            silence_list.append({
-                "start": current_end,
-                "end": next_start,
-                "duration": round(silence_duration, 3),
-                "reason": "silence"
-            })
-
-    return silence_list
 
 
 # 컷 여부 판단
@@ -187,7 +207,7 @@ def merge_cut_words(cut_words):
 
 
 # 편집점 생성
-def generate_cut_points(segments, silence_list):
+def generate_cut_points(segments, detected_habits):
     subtitles = []
     cut_points = []
 
@@ -197,7 +217,7 @@ def generate_cut_points(segments, silence_list):
         if not words:
             continue
 
-        kept_words, cut_words = filter_text(words)
+        kept_words, cut_words = filter_text(words, detected_habits)
 
         if kept_words:
             cleaned_text = " ".join(w["word"] for w in kept_words)
@@ -229,17 +249,6 @@ def generate_cut_points(segments, silence_list):
                 "removed_text": " ".join(item["words"]),
                 "reason": ", ".join(sorted(set(item["reasons"])))
             })
-
-    for silence in silence_list:
-        cut_points.append({
-            "start": format_time(silence["start"]),
-            "end": format_time(silence["end"]),
-            "start_seconds": silence["start"],
-            "end_seconds": silence["end"],
-            "duration": silence["duration"],
-            "removed_text": "",
-            "reason": "silence"
-        })
 
     cut_points.sort(key=lambda x: x["start_seconds"])
     return subtitles, cut_points
@@ -289,11 +298,11 @@ def main():
         print(f"Whisper 처리 중 오류 발생: {e}")
         return
 
-    print("무음 구간 탐지 중...")
-    silence_list = detect_silence(segments)
+    print("말버릇 빈도 분석 중...")
+    detected_habits = get_habit_words(segments)
 
-    print("편집점 생성 중...")
-    subtitles, cut_points = generate_cut_points(segments, silence_list)
+    print("불용어 및 말버릇 기반 편집점 생성 중...")
+    subtitles, cut_points = generate_cut_points(segments, detected_habits)
 
     save_json(cut_points, CUT_JSON)
     save_json(subtitles, SUBTITLE_JSON)
