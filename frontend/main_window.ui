@@ -147,14 +147,14 @@
       <item>
        <layout class="QVBoxLayout" name="layout_right">
         <item>
-         <widget class="QLabel" name="label_subtitle_title">
+         <widget class="QLabel" name="label_segment_title">
           <property name="text">
-           <string>자막 스크립트</string>
+           <string>편집 구간 목록</string>
           </property>
          </widget>
         </item>
         <item>
-         <widget class="QTableWidget" name="list_subtitles">
+         <widget class="QTableWidget" name="list_segments">
           <property name="alternatingRowColors">
            <bool>true</bool>
           </property>
@@ -175,12 +175,12 @@
           </attribute>
           <column>
            <property name="text">
-            <string>시간</string>
+            <string>구간</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>자막</string>
+            <string>이유</string>
            </property>
           </column>
           <column>
@@ -193,6 +193,59 @@
             <string>X</string>
            </property>
           </column>
+         </widget>
+        </item>
+        <item>
+         <widget class="QFrame" name="frame_subtitle_editor">
+          <property name="frameShape">
+           <enum>QFrame::StyledPanel</enum>
+          </property>
+          <layout class="QVBoxLayout" name="layout_subtitle_editor">
+           <item>
+            <widget class="QLabel" name="label_subtitle_editor_title">
+             <property name="text">
+              <string>선택한 구간의 자막</string>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <widget class="QPlainTextEdit" name="text_subtitle_edit">
+             <property name="placeholderText">
+              <string>구간을 선택하면 자막이 표시됩니다.</string>
+             </property>
+             <property name="enabled">
+              <bool>false</bool>
+             </property>
+            </widget>
+           </item>
+           <item>
+            <layout class="QHBoxLayout" name="layout_subtitle_edit_buttons">
+             <item>
+              <spacer name="horizontalSpacer_subtitle">
+               <property name="orientation">
+                <enum>Qt::Horizontal</enum>
+               </property>
+               <property name="sizeHint" stdset="0">
+                <size>
+                 <width>40</width>
+                 <height>20</height>
+                </size>
+               </property>
+              </spacer>
+             </item>
+             <item>
+              <widget class="QPushButton" name="btn_subtitle_confirm">
+               <property name="text">
+                <string>수정 완료</string>
+               </property>
+               <property name="enabled">
+                <bool>false</bool>
+               </property>
+              </widget>
+             </item>
+            </layout>
+           </item>
+          </layout>
          </widget>
         </item>
        </layout>
