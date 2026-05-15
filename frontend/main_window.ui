@@ -65,6 +65,19 @@
         </item>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="btn_settings">
+        <property name="text">
+         <string>⚙ 설정</string>
+        </property>
+        <property name="minimumSize">
+         <size>
+          <width>60</width>
+          <height>0</height>
+         </size>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>
@@ -141,7 +154,46 @@
          </widget>
         </item>
         <item>
-         <widget class="QListWidget" name="list_subtitles"/>
+         <widget class="QTableWidget" name="list_subtitles">
+          <property name="alternatingRowColors">
+           <bool>true</bool>
+          </property>
+          <property name="selectionMode">
+           <enum>QAbstractItemView::SingleSelection</enum>
+          </property>
+          <property name="selectionBehavior">
+           <enum>QAbstractItemView::SelectRows</enum>
+          </property>
+          <property name="editTriggers">
+           <set>QAbstractItemView::NoEditTriggers</set>
+          </property>
+          <attribute name="verticalHeaderVisible">
+           <bool>false</bool>
+          </attribute>
+          <attribute name="columnCount">
+           <number>4</number>
+          </attribute>
+          <column>
+           <property name="text">
+            <string>시간</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>자막</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>O</string>
+           </property>
+          </column>
+          <column>
+           <property name="text">
+            <string>X</string>
+           </property>
+          </column>
+         </widget>
         </item>
        </layout>
       </item>
@@ -152,7 +204,7 @@
       <item>
        <widget class="QPushButton" name="btn_start_process">
         <property name="text">
-         <string>처리 시작</string>
+         <string>AI 분석 시작</string>
         </property>
        </widget>
       </item>
@@ -167,6 +219,19 @@
        <widget class="QLabel" name="label_status">
         <property name="text">
          <string>대기 중</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btn_render">
+        <property name="enabled">
+         <bool>false</bool>
+        </property>
+        <property name="text">
+         <string>최종 렌더링</string>
+        </property>
+        <property name="minimumWidth">
+         <number>100</number>
         </property>
        </widget>
       </item>
