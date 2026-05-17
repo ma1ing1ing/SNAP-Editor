@@ -78,34 +78,7 @@ class BackendController:
             "json_path": output_json,
             "silence_list": silence_list
         }
-
-    def run_step2_view_waveform(self, temp_audio, json_path):
-        """
-        Step 2: 오디오 파형 및 무음 구간을 시각화하는 뷰어(viewer.py)를 실행합니다.
-        사용자가 창을 닫을 때까지 대기합니다.
-        """
-        self._log("▶ [Step 2] 파형 시각화 뷰어 띄우기 준비...")
-        self._progress(0)
-
-        if not os.path.exists(temp_audio) or not os.path.exists(json_path):
-            self._log("❌ 에러: 오디오 파일이나 JSON 파일이 존재하지 않습니다. Step 1을 먼저 진행해주세요.")
-            return None
-
-        # 저장된 JSON에서 무음 구간 로드
-        with open(json_path, 'r', encoding='utf-8') as f:
-            silence_list = json.load(f)
-
-        self._log(f"뷰어 창을 로드합니다. ({len(silence_list)}개의 무음 구간 표시)")
-        self._progress(50)
-
-        # viewer.py의 시각화 함수 호출 (창이 닫힐 때까지 블로킹됨)
-        display_waveform_with_silence(temp_audio, silence_segments=silence_list)
-        
-        self._progress(100)
-        self._log("✅ [Step 2] 뷰어 창 종료 및 결과 확인(승인) 완료.")
-
-        return {"status": "approved"}
-
+    
     def run_step2_get_waveform_data(self, temp_audio, num_points=3000):
         """
         프론트엔드에서 파형을 그리기 위한 데이터를 요청할 때 사용합니다.
