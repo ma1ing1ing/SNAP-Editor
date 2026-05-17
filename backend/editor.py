@@ -89,9 +89,11 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
         ]
         subprocess.run(merge_cmd, check=True)
         print(f"✅ 최종 편집 영상 생성 완료: {output_file}")
+        return output_file
 
     except Exception as e:
         print(f"❌ 렌더링 중 치명적 오류 발생: {e}")
+        return None
 
     finally:
         # 6. 임시 파일 정리

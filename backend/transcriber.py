@@ -11,12 +11,12 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt"):
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small'):
     print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path}")
     
     # 🌟 최신 환경에 맞춰 복잡한 예외처리 없이 깔끔하게 모델 로드
     # (맥북 성능을 믿고 기본 설정으로 로드합니다)
-    model = ststable.load_model('small') 
+    model = ststable.load_model(model_size) 
 
     kiwi = Kiwi()
 

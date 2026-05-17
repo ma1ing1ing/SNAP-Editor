@@ -9,7 +9,7 @@ from extract_audio import extract_audio
 from vad_tagger import detect_and_tag_silence
 from editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
-from viewer import display_waveform_with_silence
+from viewer import display_waveform_with_silence, get_waveform_data
 
 class BackendController:
     def __init__(self, progress_callback=None, log_callback=None):
@@ -33,7 +33,8 @@ class BackendController:
         if self.progress_callback:
             self.progress_callback(value)
 
-    def run_step1_extract_and_vad(self, input_video, temp_audio, output_json):
+    def run_step1_extract_and_vad(self, input_video, temp_audio, output_json,
+                                  vad_threshold=0.3, min_silence_ms=500, min_speech_ms=250):
         """
         Step 1: 영상 불러오기, 오디오 추출, VAD 분석, JSON 내보내기
         """
@@ -53,7 +54,12 @@ class BackendController:
         
         # 2. VAD 분석 (무음 구간 탐지)
         self._log("AI 기반 VAD 무음 구간 분석 중...")
-        silence_list = detect_and_tag_silence(temp_audio)
+        silence_list = detect_and_tag_silence(
+            temp_audio,
+            threshold=vad_threshold,
+            min_silence_duration_ms=min_silence_ms,
+            min_speech_duration_ms=min_speech_ms
+        )
         
         self._progress(80)
         
@@ -100,6 +106,19 @@ class BackendController:
 
         return {"status": "approved"}
 
+    def run_step2_get_waveform_data(self, temp_audio, num_points=3000):
+        """
+        프론트엔드에서 파형을 그리기 위한 데이터를 요청할 때 사용합니다.
+        """
+        self._log("▶ [Step 2] 시각화용 파형 데이터 추출 중...")
+        self._progress(30)
+        
+        waveform_data = get_waveform_data(temp_audio, num_points=num_points)
+        
+        self._progress(100)
+        self._log("✅ 파형 데이터 추출 완료. 프론트엔드로 전송합니다.")
+        return waveform_data
+
     def run_step3_render_video(self, input_video, json_path, edited_video):
         """
         Step 3: 승인된 JSON 데이터를 바탕으로 컷편집 렌더링
@@ -128,7 +147,8 @@ class BackendController:
             "edited_video": edited_video
         }
         
-    def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result):
+    def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result,
+                                   whisper_model_size='small'):
         """
         Step 4: 컷편집된 영상을 바탕으로 STT 및 자막 파일 생성
         """
@@ -139,7 +159,11 @@ class BackendController:
         self._progress(20)
         
         # STT 변환 및 자막 추출
-        srt_path, detected_lang = transcribe_video_to_srt(edited_video, subtitle_srt)
+        srt_path, detected_lang = transcribe_video_to_srt(
+            edited_video, 
+            subtitle_srt, 
+            model_size=whisper_model_size
+        )
         self._log(f"STT 완료. 자막 파일 생성됨: {srt_path} (감지된 언어: {detected_lang})")
         self._progress(70)
         
