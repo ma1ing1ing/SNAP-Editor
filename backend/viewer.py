@@ -46,19 +46,19 @@ def display_waveform_with_silence(audio_path, silence_segments=None):
     # 화면에 창 띄우기 (이 코드가 실행되면 창을 닫을 때까지 대기합니다)
     plt.show()
 
-def get_waveform_data(audio_path, num_points=2000):
+def get_waveform_data(audio_path, num_points=100000):
     """
     프론트엔드 시각화용 파형 데이터를 추출하여 반환합니다.
     num_points: 프론트엔드로 넘길 점의 개수 (너무 많으면 UI가 버벅임)
     """
     if not os.path.exists(audio_path):
         print("❌ 에러: 분석할 오디오 파일이 없습니다.")
-        return None
+        return None, None, None
 
     y, sr = librosa.load(audio_path, sr=None)
     
     # 1. 프론트엔드가 그리기 쉽도록 데이터 개수 축소 (Downsampling)
-    # 예: 100만개의 샘플을 num_points(2000)개로 압축 (최대/최소값 위주로)
+    # 예: 100만개의 샘플을 num_points개로 압축 (최대/최소값 위주로)
     samples_per_point = len(y) // num_points
     if samples_per_point > 0:
         # 모양을 2D로 만들어서 각 구간별 최대/최소, 혹은 평균 진폭을 구함
@@ -68,13 +68,8 @@ def get_waveform_data(audio_path, num_points=2000):
     else:
         y_downsampled = y
         
-    # 2. X축 시간(초) 데이터 생성
+    # 총 길이(초) 계산
     duration = librosa.get_duration(y=y, sr=sr)
-    times = np.linspace(0, duration, num=len(y_downsampled))
     
-    # 프론트엔드에서 바로 사용할 수 있도록 딕셔너리로 반환
-    return {
-        "times": times.tolist(),
-        "amplitudes": y_downsampled.tolist(),
-        "duration": float(duration)
-    }
+    # 2. 오디오 파형 배열, 샘플레이트, 총 길이 리턴
+    return y_downsampled.tolist(), sr, float(duration)
