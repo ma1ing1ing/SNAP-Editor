@@ -78,7 +78,14 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
     try:
-        ai_result = run_ai_pipeline(stt_result, params={"stopword_mode": "default"})
+        # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정
+        ai_result = run_ai_pipeline(
+            video_path=video_path,
+            params={
+                "mode": "default",
+                "stt_result": stt_result
+            }
+        )
         
         # 결과를 JSON으로 저장
         ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
