@@ -25,6 +25,9 @@ Data/
 *.log
 *.tmp
 
+# 5. IDE settings
+.idea/
+
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
