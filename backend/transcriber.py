@@ -1,5 +1,12 @@
 import stable_whisper as ststable
 from kiwipiepy import Kiwi
+import sys
+import os
+import json
+
+# 상위 디렉토리를 경로에 추가하여 AI 모듈 임포트
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from AI.main import run_ai_pipeline
 
 def format_time(seconds):
     # 음수가 되지 않도록 처리
@@ -54,5 +61,34 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     print(f"✅ 정밀 자막 파일 생성 완료: {output_srt_path}")
     
+    # ---------------------------------------------------------
+    # STT 결과를 딕셔너리 형태로 변환하여 AI 파이프라인에 전달
+    # ---------------------------------------------------------
+    stt_result = {"segments": []}
+    for segment in result.segments:
+        words_list = []
+        if hasattr(segment, 'words'):
+            for w in segment.words:
+                words_list.append({
+                    "word": w.word,
+                    "start": w.start,
+                    "end": w.end
+                })
+        stt_result["segments"].append({"words": words_list})
+
+    print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
+    try:
+        ai_result = run_ai_pipeline(stt_result, params={"stopword_mode": "default"})
+        
+        # 결과를 JSON으로 저장
+        ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
+        with open(ai_output_path, "w", encoding="utf-8") as f:
+            json.dump(ai_result, f, ensure_ascii=False, indent=2)
+            
+        print(f"✅ 불용어 탐지 완료: 총 {len(ai_result.get('cut_points', []))}개의 불용어 구간 발견")
+        print(f"✅ AI 결과 저장 완료: {ai_output_path}")
+    except Exception as e:
+        print(f"❌ AI 파이프라인 실행 중 오류 발생: {e}")
+
     # main.py와의 호환성을 위해 자막 경로와 감지된 언어 반환
     return output_srt_path, detected_lang
