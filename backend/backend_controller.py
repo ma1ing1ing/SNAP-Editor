@@ -6,10 +6,13 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from extract_audio import extract_audio
-from vad_tagger import detect_and_tag_silence
 from editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
 from viewer import display_waveform_with_silence, get_waveform_data
+
+# 🚀 [수정 포인트 1] 기존 vad_tagger 대신, 멘티가 만든 export_json을 임포트!
+# from vad_tagger import detect_and_tag_silence (기존 코드는 주석 처리 또는 삭제)
+from export_json import detect_silence
 
 class BackendController:
     def __init__(self, progress_callback=None, log_callback=None):
@@ -52,25 +55,23 @@ class BackendController:
         
         self._progress(40)
         
-        # 2. VAD 분석 (무음 구간 탐지)
-        self._log("AI 기반 VAD 무음 구간 분석 중...")
-        silence_list = detect_and_tag_silence(
-            temp_audio,
-            threshold=vad_threshold,
-            min_silence_duration_ms=min_silence_ms,
-            min_speech_duration_ms=min_speech_ms
-        )
+        # 2. VAD 분석 (무음 구간 탐지) 및 상세 데이터 추출
+        self._log("AI 기반 VAD 무음 구간 분석 및 상세 데이터 추출 중...")
+        
+        # 🚀 [수정 포인트 2] 팀원의 기존 함수 대신 멘티가 만든 함수 호출!
+        # 명세서에 맞게 무음 튜플 리스트(silence_list)와 상세 JSON 데이터(detailed_json_data)를 통째로 받아옴
+        silence_list, detailed_json_data = detect_silence(temp_audio)
         
         self._progress(80)
         
         # 3. 분석 결과를 JSON 파일로 저장
-        # export_json 파일을 호출하여 상세한 구조(예: 비디오 총 길이, 음성 구간 ID 등)을 전달할 수도 있음
-        self._log("분석 결과 JSON 저장 중...")
+        self._log("상세 분석 결과 JSON 저장 중...")
         with open(output_json, 'w', encoding='utf-8') as f:
-            json.dump(silence_list, f, indent=4)
+            # 🚀 [수정 포인트 3] 단순 리스트 대신 멘티가 만든 상세 구조(detailed_json_data) 저장!
+            json.dump(detailed_json_data, f, indent=4, ensure_ascii=False)
             
         self._progress(100)
-        self._log(f"✅ [Step 1] 완료. JSON 파일 저장됨: {output_json}")
+        self._log(f"✅ [Step 1] 완료. 상세 JSON 파일 저장됨: {output_json}")
         
         # 다음 단계로 넘길 상태(State) 데이터 리턴
         return {
