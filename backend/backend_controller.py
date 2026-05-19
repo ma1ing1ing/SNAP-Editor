@@ -170,7 +170,7 @@ def run_pipeline(video_path, settings, on_progress=None):
     4. 데이터 병합 (자막, 무음, 불용어)하여 UI에서 요구하는 segments 리스트 반환
     """
     from extract_audio import extract_audio
-    from export_json import run_vad_and_export_json
+    from export_json import detect_silence
     from transcriber import transcribe_video_to_srt
     import os
     
@@ -184,7 +184,7 @@ def run_pipeline(video_path, settings, on_progress=None):
     if on_progress: on_progress(30)
     
     # 2. VAD 분석 (무음 구간 탐지)
-    vad_results = run_vad_and_export_json(temp_audio)
+    silence_return_list, vad_results = detect_silence(temp_audio)
     silence_segments = vad_results.get("silence_segments", []) if vad_results else []
     duration = vad_results.get("video_info", {}).get("total_duration", 0.0) if vad_results else 0.0
     
