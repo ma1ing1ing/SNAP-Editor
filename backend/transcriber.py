@@ -64,17 +64,28 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     # ---------------------------------------------------------
     # STT 결과를 딕셔너리 형태로 변환하여 AI 파이프라인에 전달
     # ---------------------------------------------------------
+    # STT 결과를 AI 필터 입력 형식에 맞게 변환한다.
+    # segment 전체 정보와 단어별 타임스탬프를 함께 전달한다.
+    # ---------------------------------------------------------
     stt_result = {"segments": []}
+
     for segment in result.segments:
         words_list = []
-        if hasattr(segment, 'words'):
+
+        if hasattr(segment, "words"):
             for w in segment.words:
                 words_list.append({
                     "word": w.word,
                     "start": w.start,
                     "end": w.end
                 })
-        stt_result["segments"].append({"words": words_list})
+
+        stt_result["segments"].append({
+            "start": segment.start,
+            "end": segment.end,
+            "text": segment.text.strip(),
+            "words": words_list
+        })
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
     try:

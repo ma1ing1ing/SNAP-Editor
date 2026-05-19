@@ -247,10 +247,10 @@ def build_cut_entries(cut_words: list[dict[str, Any]]) -> list[dict[str, Any]]:
 
     for word in cut_words:
         is_same_reason = merged and word["reason"] == merged[-1]["reason"]
-        is_close = merged and word["start"] - merged[-1]["end"] <= 0.05
+        is_close = merged and word["start"] - merged[-1]["end_seconds"] <= 0.05
 
         if is_same_reason and is_close:
-            merged[-1]["end"] = word["end"]
+            merged[-1]["end_seconds"] = word["end"]
             merged[-1]["words"].append(word["word"])
         else:
             merged.append({
