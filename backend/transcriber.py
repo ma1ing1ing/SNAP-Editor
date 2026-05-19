@@ -88,6 +88,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         })
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
+    ai_result = {}
     try:
         # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정
         ai_result = run_ai_pipeline(
@@ -108,5 +109,5 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     except Exception as e:
         print(f"❌ AI 파이프라인 실행 중 오류 발생: {e}")
 
-    # main.py와의 호환성을 위해 자막 경로와 감지된 언어 반환
-    return output_srt_path, detected_lang
+    # main.py와의 호환성을 위해 자막 경로, 감지된 언어, 그리고 파이프라인 연동용 결과값 반환
+    return output_srt_path, detected_lang, stt_result, ai_result

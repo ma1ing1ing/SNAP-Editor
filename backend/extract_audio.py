@@ -23,7 +23,7 @@ def extract_audio(video_path, output_audio_path):
                 # 🌟 싱크 밀림 방지를 위한 핵심 옵션: 오디오 타임스탬프 강제 정렬
                 af='aresample=async=1:min_hard_comp=0.100000:first_pts=0'
             )
-            .overwrite_output()     # temp_audio.wav가 있다면 무조건 안전하게 덮어쓰기
+            .overwrite_output()     
             .run(capture_stdout=True, capture_stderr=True)
         )
         print(f"✅ 오디오 추출 및 싱크 정렬 완료: {output_audio_path}")

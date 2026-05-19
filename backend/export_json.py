@@ -48,6 +48,8 @@ def run_vad_and_export_json(audio_path):
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(results, f, indent=4, ensure_ascii=False)
     print(f"새로운 JSON 생성 완료: {output_path}")
+    
+    return results
 
 if __name__ == "__main__":
     video_file = "Data/test_video.mp4.webm"
