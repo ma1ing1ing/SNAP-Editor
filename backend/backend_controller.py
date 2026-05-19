@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from extract_audio import extract_audio
-from editor import create_final_edited_video, add_subtitles_to_video
+from backend.editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
 from viewer import display_waveform_with_silence, get_waveform_data
 
