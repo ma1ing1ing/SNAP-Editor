@@ -1,0 +1,25 @@
+# Local IDE settings
+.idea/
+.vscode/
+
+# Python cache files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Local test/output data
+Data/
+backend/Data/
+output/
+
+# Media and generated files
+*.mp4
+*.MP4
+*.wav
+*.avi
+*.mkv
+*.log
+*.tmp
+
+# Secrets
+.env
