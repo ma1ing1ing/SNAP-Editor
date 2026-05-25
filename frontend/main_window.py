@@ -1,5 +1,4 @@
 import os
-import json
 from typing import Optional
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushButton, QVBoxLayout, QMessageBox
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
@@ -74,20 +73,6 @@ class MainWindow(QMainWindow):
 
     # ── 파일 열기 ──────────────────────────────────────────────────────────────
 
-    def _segments_path(self, video_path: str) -> str:
-        stem = os.path.splitext(video_path)[0]
-        return stem + "_segments.json"
-
-    def _save_segments(self):
-        if not self._video_path or not self._segments:
-            return
-        path = self._segments_path(self._video_path)
-        try:
-            with open(path, "w", encoding="utf-8") as f:
-                json.dump(self._segments, f, ensure_ascii=False, indent=2)
-        except Exception:
-            pass
-
     def _open_file(self):
         path, _ = QFileDialog.getOpenFileName(
             self,
@@ -102,25 +87,6 @@ class MainWindow(QMainWindow):
         self.label_file_path.setText(path)
         self.btn_render.setEnabled(False)
         self._video_player.load(path)
-
-        seg_path = self._segments_path(path)
-        if os.path.exists(seg_path):
-            reply = QMessageBox.question(
-                self,
-                "이전 분석 결과",
-                "이 영상의 이전 분석 결과가 있습니다.\n불러올까요?",
-                QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
-            )
-            if reply == QMessageBox.StandardButton.Yes:
-                try:
-                    with open(seg_path, encoding="utf-8") as f:
-                        segments = json.load(f)
-                    self._populate_segments(segments)
-                    self.btn_render.setEnabled(True)
-                    self.label_status.setText(f"✅ 저장된 분석 결과 불러옴 ({len(segments)}개 구간)")
-                    return
-                except Exception:
-                    pass
 
         self._open_settings()
 
@@ -166,13 +132,14 @@ class MainWindow(QMainWindow):
         self._analysis_popup.rejected.connect(self._ai_worker.terminate)
 
         self._ai_worker.start()
+        print("[DEBUG-B] AI 분석 시작됨")
         self.label_status.setText("AI 분석 중...")
         self._analysis_popup.open()
 
     def _on_analysis_complete(self, segments: list):
+        print(f"[DEBUG-E] analysis_complete: {len(segments)}개")
         self._populate_segments(segments)
         self.btn_render.setEnabled(True)
-        self._save_segments()
 
         count = len(segments)
         if self._analysis_popup:

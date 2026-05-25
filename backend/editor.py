@@ -95,3 +95,32 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
         print("❌ FFmpeg 비디오 렌더링 중 에러 발생")
         if e.stderr:
             print(e.stderr.decode('utf-8'))
+
+
+def add_subtitles_to_video(video_path, srt_path, output_file, language='ko'):
+    """편집된 영상에 SRT 자막을 소프트 자막 트랙으로 병합."""
+    print(f"\n▶ [자막 병합] {srt_path} → {output_file}")
+    try:
+        video = ffmpeg.input(video_path)
+        subs  = ffmpeg.input(srt_path)
+        (
+            ffmpeg
+            .output(
+                video['v'], video['a'], subs,
+                output_file,
+                **{
+                    'c:v': 'copy',
+                    'c:a': 'copy',
+                    'c:s': 'mov_text',
+                    'metadata:s:s:0': f'language={language}',
+                }
+            )
+            .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
+        )
+        print(f"✅ 자막 병합 완료: {output_file}")
+        return True
+    except ffmpeg.Error as e:
+        print("❌ 자막 병합 실패")
+        if e.stderr:
+            print(e.stderr.decode('utf-8'))
+        return False
