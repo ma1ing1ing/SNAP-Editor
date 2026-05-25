@@ -163,7 +163,7 @@ class MainWindow(QMainWindow):
             return
 
         self.btn_render.setEnabled(False)
-        self._render_worker = RenderWorker(self._video_path, self._segments)
+        self._render_worker = RenderWorker(self._video_path, self._segments, self._load_settings())
         self._render_worker.progress_updated.connect(self.progress_bar.setValue)
         self._render_worker.status_changed.connect(self.label_status.setText)
         self._render_worker.render_complete.connect(self._on_render_complete)

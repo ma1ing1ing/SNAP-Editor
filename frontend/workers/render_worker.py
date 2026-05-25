@@ -88,10 +88,13 @@ class RenderWorker(QThread):
     render_complete  = pyqtSignal(str, list)   # (final_video_path, updated_segments)
     error_occurred   = pyqtSignal(str)
 
-    def __init__(self, video_path: str, segments: list[dict]):
+    _MODELS = ["tiny", "base", "small", "medium", "large"]
+
+    def __init__(self, video_path: str, segments: list[dict], settings: dict | None = None):
         super().__init__()
         self._video_path = video_path
         self._segments   = segments
+        self._settings   = settings or {}
 
     def run(self):
         try:
@@ -143,7 +146,10 @@ class RenderWorker(QThread):
                 progress_callback=lambda p: self.progress_updated.emit(int(50 + p * 0.5)),
                 log_callback=lambda m: self.status_changed.emit(m),
             )
-            result4 = bc2.run_step4_stt_and_subtitle(edited_video, subtitle_srt, final_result)
+            model_idx = int(self._settings.get("whisper_model", 2))
+            whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
+            result4 = bc2.run_step4_stt_and_subtitle(edited_video, subtitle_srt, final_result,
+                                                     whisper_model=whisper_model)
             if result4 is None:
                 raise RuntimeError("STT 자막 생성 실패")
 

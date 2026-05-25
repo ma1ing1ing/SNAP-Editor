@@ -129,18 +129,20 @@ class BackendController:
             "edited_video": edited_video
         }
         
-    def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result):
+    def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result,
+                                    whisper_model="small"):
         """
         Step 4: 컷편집된 영상을 바탕으로 STT 및 자막 파일 생성
         """
-        self._log("▶ [Step 4] STT 및 자막 생성 시작...")
+        self._log(f"▶ [Step 4] STT 및 자막 생성 시작... (Whisper 모델: {whisper_model})")
         self._progress(0)
-        
+
         self._log("Faster-Whisper & Kiwi 기반 STT 변환 진행 중... (시간이 소요될 수 있습니다)")
         self._progress(20)
-        
+
         # STT 변환 및 자막 추출
-        srt_path, detected_lang = transcribe_video_to_srt(edited_video, subtitle_srt)
+        srt_path, detected_lang = transcribe_video_to_srt(edited_video, subtitle_srt,
+                                                          whisper_model=whisper_model)
         self._log(f"STT 완료. 자막 파일 생성됨: {srt_path} (감지된 언어: {detected_lang})")
         self._progress(70)
         
