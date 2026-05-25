@@ -134,6 +134,10 @@ class MainWindow(QMainWindow):
         # 팝업을 완료 화면으로 전환 (안 C)
         if self._analysis_popup:
             self._analysis_popup.mark_complete(count)
+            # 팝업 "확인" 누르면 첫 프레임부터 자동 재생
+            self._analysis_popup.accepted.connect(
+                lambda: (self._video_player.seek(0), self._video_player.play())
+            )
 
         # 안 B — 다음 액션 안내
         self.label_status.setText(
