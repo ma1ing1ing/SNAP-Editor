@@ -57,7 +57,7 @@ class BackendController:
 
         # 2. VAD 분석 (무음 구간 탐지)
         self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
-        _, vad_results = detect_silence(temp_audio)
+        _, vad_results = detect_silence(temp_audio, threshold=threshold)
         silence_segments = vad_results.get("silence_segments", []) if vad_results else []
 
         self._progress(80)
@@ -143,25 +143,26 @@ class BackendController:
         self._progress(20)
 
         # STT 변환 및 자막 추출
-        srt_path, detected_lang, _, _ = transcribe_video_to_srt(
+        srt_path, detected_lang, _, ai_result = transcribe_video_to_srt(
             edited_video,
             subtitle_srt,
             model_size=whisper_model
         )
         self._log(f"STT 완료. 자막 파일 생성됨: {srt_path} (감지된 언어: {detected_lang})")
         self._progress(70)
-        
+
         # 컷편집된 영상에 자막을 메타데이터 트랙으로 병합
         self._log("자막을 영상에 병합 중...")
         success = add_subtitles_to_video(edited_video, srt_path, final_result, language=detected_lang)
-        
+
         if success:
             self._progress(100)
             self._log(f"✅ [Step 4] 완료. 최종 영상(자막 포함) 생성됨: {final_result}")
             return {
                 "final_result": final_result,
                 "subtitle_srt": subtitle_srt,
-                "language": detected_lang
+                "language": detected_lang,
+                "cut_points": ai_result.get("cut_points", []) if ai_result else [],
             }
         else:
             self._log("❌ 자막 병합 실패")

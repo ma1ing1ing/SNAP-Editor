@@ -57,6 +57,22 @@ def _edited_to_original_ms(edited_ms: int, mapping: list[tuple]) -> int:
     return -1
 
 
+def _apply_cut_points(segments: list[dict], cut_points: list[dict]) -> list[dict]:
+    """
+    AI cut_points(불용어 구간)를 segments에 반영.
+    cut_points의 start_seconds/end_seconds(초)를 ms로 변환해 겹치는 구간을 keep=False로 표시.
+    """
+    updated = [dict(seg) for seg in segments]
+    for cp in cut_points:
+        cp_start = int(cp.get("start_seconds", 0) * 1000)
+        cp_end   = int(cp.get("end_seconds",   0) * 1000)
+        for seg in updated:
+            if seg["start"] < cp_end and seg["end"] > cp_start:
+                seg["keep"]   = False
+                seg["reason"] = "불용어"
+    return updated
+
+
 def _assign_text_to_segments(segments: list[dict], srt_entries: list[dict]) -> list[dict]:
     """
     SRT 항목(편집 영상 기준)을 원본 구간에 매핑하여 text 필드 업데이트.
@@ -155,8 +171,13 @@ class RenderWorker(QThread):
                 raise RuntimeError("STT 자막 생성 실패")
 
             # SRT 파싱 → 원본 구간에 텍스트 매핑
-            srt_entries     = _parse_srt(subtitle_srt)
+            srt_entries      = _parse_srt(subtitle_srt)
             updated_segments = _assign_text_to_segments(self._segments, srt_entries)
+
+            # AI 불용어 cut_points → keep=False 반영
+            cut_points = result4.get("cut_points", [])
+            if cut_points:
+                updated_segments = _apply_cut_points(updated_segments, cut_points)
 
             self.progress_updated.emit(100)
             self.status_changed.emit("렌더링 완료")
