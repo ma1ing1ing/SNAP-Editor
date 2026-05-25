@@ -33,27 +33,28 @@ class BackendController:
         if self.progress_callback:
             self.progress_callback(value)
 
-    def run_step1_extract_and_vad(self, input_video, temp_audio, output_json):
+    def run_step1_extract_and_vad(self, input_video, temp_audio, output_json,
+                                   threshold=0.3):
         """
         Step 1: 영상 불러오기, 오디오 추출, VAD 분석, JSON 내보내기
         """
         self._log("▶ [Step 1] 오디오 추출 및 VAD 분석 시작...")
         self._progress(0)
-        
+
         # 1. 오디오 추출
         self._log(f"오디오 추출 중...: {input_video}")
         self._progress(10)
-        
+
         success = extract_audio(input_video, temp_audio)
         if not success:
             self._log("❌ 오디오 추출 실패")
             return None
-        
+
         self._progress(40)
-        
+
         # 2. VAD 분석 (무음 구간 탐지)
-        self._log("AI 기반 VAD 무음 구간 분석 중...")
-        silence_list = detect_and_tag_silence(temp_audio)
+        self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
+        silence_list = detect_and_tag_silence(temp_audio, threshold=threshold)
         
         self._progress(80)
         
