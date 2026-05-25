@@ -79,10 +79,9 @@ class MainWindow(QMainWindow):
 
         self._video_path = path
         self.label_file_path.setText(path)
-        self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
         self.btn_render.setEnabled(True)
         self._video_player.load(path)
-        self._video_player.seek(1)
+        self._open_settings()
 
     # ── 재생 컨트롤 ───────────────────────────────────────────────────────────
 
@@ -202,7 +201,12 @@ class MainWindow(QMainWindow):
         dialog = SettingsDialog(parent=self)
         dialog.accepted.connect(self._highlight_words)
         dialog.accepted.connect(self._on_settings_saved)
+        dialog.rejected.connect(self._on_settings_cancelled)
         dialog.exec()
+
+    def _on_settings_cancelled(self):
+        if self._video_path:
+            self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
 
     def _on_settings_saved(self):
         s = QSettings("SNAP", "Editor")
