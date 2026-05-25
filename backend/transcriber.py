@@ -1,5 +1,12 @@
 import stable_whisper as ststable
 from kiwipiepy import Kiwi
+import sys
+import os
+import json
+
+# 상위 디렉토리를 경로에 추가하여 AI 모듈 임포트
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from AI.main import run_ai_pipeline
 
 def format_time(seconds):
     # 음수가 되지 않도록 처리
@@ -11,11 +18,10 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt",
-                            whisper_model="small"):
-    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {whisper_model})")
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small'):
+    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
 
-    model = ststable.load_model(whisper_model)
+    model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 
@@ -54,5 +60,53 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     print(f"✅ 정밀 자막 파일 생성 완료: {output_srt_path}")
     
-    # main.py와의 호환성을 위해 자막 경로와 감지된 언어 반환
-    return output_srt_path, detected_lang
+    # ---------------------------------------------------------
+    # STT 결과를 딕셔너리 형태로 변환하여 AI 파이프라인에 전달
+    # ---------------------------------------------------------
+    # STT 결과를 AI 필터 입력 형식에 맞게 변환한다.
+    # segment 전체 정보와 단어별 타임스탬프를 함께 전달한다.
+    # ---------------------------------------------------------
+    stt_result = {"segments": []}
+
+    for segment in result.segments:
+        words_list = []
+
+        if hasattr(segment, "words"):
+            for w in segment.words:
+                words_list.append({
+                    "word": w.word,
+                    "start": w.start,
+                    "end": w.end
+                })
+
+        stt_result["segments"].append({
+            "start": segment.start,
+            "end": segment.end,
+            "text": segment.text.strip(),
+            "words": words_list
+        })
+
+    print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
+    ai_result = {}
+    try:
+        # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정
+        ai_result = run_ai_pipeline(
+            video_path=video_path,
+            params={
+                "mode": "default",
+                "stt_result": stt_result
+            }
+        )
+        
+        # 결과를 JSON으로 저장
+        ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
+        with open(ai_output_path, "w", encoding="utf-8") as f:
+            json.dump(ai_result, f, ensure_ascii=False, indent=2)
+            
+        print(f"✅ 불용어 탐지 완료: 총 {len(ai_result.get('cut_points', []))}개의 불용어 구간 발견")
+        print(f"✅ AI 결과 저장 완료: {ai_output_path}")
+    except Exception as e:
+        print(f"❌ AI 파이프라인 실행 중 오류 발생: {e}")
+
+    # main.py와의 호환성을 위해 자막 경로, 감지된 언어, 그리고 파이프라인 연동용 결과값 반환
+    return output_srt_path, detected_lang, stt_result, ai_result
