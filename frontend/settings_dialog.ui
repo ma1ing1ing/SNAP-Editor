@@ -83,7 +83,28 @@
        <widget class="QListWidget" name="list_words"/>
       </item>
       <item>
-       <layout class="QHBoxLayout" name="layout_remove"/>
+       <layout class="QHBoxLayout" name="layout_remove">
+        <item>
+         <spacer name="horizontalSpacer_remove">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_remove_word">
+          <property name="text">
+           <string>선택 삭제</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
