@@ -276,6 +276,8 @@ class MainWindow(QMainWindow):
         self._highlight_words()
 
     def _on_subtitle_confirm(self):
+        from PyQt6.QtWidgets import QApplication
+        QApplication.inputMethod().commit()
         row = self.list_segments.currentRow()
         if 0 <= row < len(self._segments):
             new_text = self.text_subtitle_edit.toPlainText()
