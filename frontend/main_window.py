@@ -175,7 +175,13 @@ class MainWindow(QMainWindow):
         self._segments = updated_segments
         self._refresh_segment_text()
         self.btn_render.setEnabled(True)
-        self.label_status.setText(f"✅ 렌더링 완료 — {output_path}")
+
+        # 결과 영상 플레이어에 로드
+        self._video_path = output_path
+        self.label_file_path.setText(output_path)
+        self._video_player.load(output_path)
+
+        self.label_status.setText("✅ 렌더링 완료 — 결과 영상을 재생해보세요")
 
     def _on_render_error(self, message: str):
         self.btn_render.setEnabled(True)
