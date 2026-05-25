@@ -5,6 +5,9 @@ import sys
 # 현재 모듈(backend)을 경로에 추가하여 모듈 내 함수들을 임포트
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# backend/Data 경로 — 실행 위치에 관계없이 이 파일 기준으로 고정
+_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Data")
+
 from extract_audio import extract_audio
 from editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
@@ -186,23 +189,23 @@ def run_pipeline(video_path, settings, on_progress=None):
     import os
     
     if on_progress: on_progress(10)
-    
+
     # 1. 오디오 추출
-    temp_audio = "./backend/Data/temp_audio.wav"
-    os.makedirs("./backend/Data", exist_ok=True)
+    os.makedirs(_DATA_DIR, exist_ok=True)
+    temp_audio = os.path.join(_DATA_DIR, "temp_audio.wav")
     extract_audio(video_path, temp_audio)
-    
+
     if on_progress: on_progress(30)
-    
+
     # 2. VAD 분석 (무음 구간 탐지)
     silence_return_list, vad_results = detect_silence(temp_audio)
     silence_segments = vad_results.get("silence_segments", []) if vad_results else []
     duration = vad_results.get("video_info", {}).get("total_duration", 0.0) if vad_results else 0.0
-    
+
     if on_progress: on_progress(60)
-    
+
     # 3. STT 및 불용어 탐지
-    srt_out = "./backend/Data/subtitle.srt"
+    srt_out = os.path.join(_DATA_DIR, "subtitle.srt")
     _models = ["tiny", "base", "small", "medium", "large"]
     model_size = "small"
     if isinstance(settings, dict):
@@ -264,13 +267,16 @@ def run_pipeline(video_path, settings, on_progress=None):
     if on_progress: on_progress(100)
     return merged
 
-def render_pipeline(input_video, segments, output_video="./backend/Data/final_output.mp4"):
+def render_pipeline(input_video, segments, output_video=None):
     """
     사용자가 프론트엔드에서 수정한 segments 데이터를 바탕으로 컷편집 및 자막 생성
     """
     from editor import create_final_edited_video, add_subtitles_to_video
     from transcriber import format_time
     import os
+
+    if output_video is None:
+        output_video = os.path.join(_DATA_DIR, "final_output.mp4")
     
     # 1. 편집할 구간(잘라낼 구간) 계산 (ms -> 초 변환)
     silence_segments = []
@@ -282,8 +288,8 @@ def render_pipeline(input_video, segments, output_video="./backend/Data/final_ou
             })
             
     # 2. 유지되는 구간만 모아서 연속된 타임라인으로 새로운 SRT 자막 생성
-    temp_srt = "./backend/Data/temp_subtitle.srt"
-    os.makedirs("./backend/Data", exist_ok=True)
+    os.makedirs(_DATA_DIR, exist_ok=True)
+    temp_srt = os.path.join(_DATA_DIR, "temp_subtitle.srt")
     with open(temp_srt, "w", encoding="utf-8") as f:
         new_current_time = 0.0
         subtitle_index = 1
@@ -299,7 +305,7 @@ def render_pipeline(input_video, segments, output_video="./backend/Data/final_ou
                 new_current_time += duration
 
     # 3. 비디오 컷편집 수행
-    temp_edited = "./backend/Data/temp_edited.mp4"
+    temp_edited = os.path.join(_DATA_DIR, "temp_edited.mp4")
     create_final_edited_video(input_video, silence_segments, temp_edited)
     
     # 4. 최종 영상에 새로 만든 자막 병합
