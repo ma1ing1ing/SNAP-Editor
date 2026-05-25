@@ -2,17 +2,14 @@
 .idea/
 .vscode/
 
-# Python cache files
-__pycache__/
-*.py[cod]
-*$py.class
+# AI 도구 및 로컬 설정 (원격 저장소에 올리지 않음)
+.opencode/
+.claude/
+graphify-out/
+AGENTS.md
+CLAUDE.md
 
-# Local test/output data
-Data/
-backend/Data/
-output/
-
-# Media and generated files
+# 1. 테스트용 대용량 미디어 파일 (절대 깃허브에 올리지 말 것)
 *.mp4
 *.MP4
 *.wav

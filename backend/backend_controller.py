@@ -37,30 +37,27 @@ class BackendController:
             self.progress_callback(value)
 
     def run_step1_extract_and_vad(self, input_video, temp_audio, output_json,
-                                  vad_threshold=0.3, min_silence_ms=500, min_speech_ms=250):
+                                   threshold=0.3):
         """
         Step 1: 영상 불러오기, 오디오 추출, VAD 분석, JSON 내보내기
         """
         self._log("▶ [Step 1] 오디오 추출 및 VAD 분석 시작...")
         self._progress(0)
-        
+
         # 1. 오디오 추출
         self._log(f"오디오 추출 중...: {input_video}")
         self._progress(10)
-        
+
         success = extract_audio(input_video, temp_audio)
         if not success:
             self._log("❌ 오디오 추출 실패")
             return None
-        
+
         self._progress(40)
-        
-        # 2. VAD 분석 (무음 구간 탐지) 및 상세 데이터 추출
-        self._log("AI 기반 VAD 무음 구간 분석 및 상세 데이터 추출 중...")
-        
-        # 🚀 [수정 포인트 2] 팀원의 기존 함수 대신 멘티가 만든 함수 호출!
-        # 명세서에 맞게 무음 튜플 리스트(silence_list)와 상세 JSON 데이터(detailed_json_data)를 통째로 받아옴
-        silence_list, detailed_json_data = detect_silence(temp_audio)
+
+        # 2. VAD 분석 (무음 구간 탐지)
+        self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
+        silence_list = detect_and_tag_silence(temp_audio, threshold=threshold)
         
         self._progress(80)
         
@@ -84,10 +81,22 @@ class BackendController:
         """
         프론트엔드에서 파형을 그리기 위한 데이터를 요청할 때 사용합니다.
         """
-        self._log("▶ [Step 2] 시각화용 파형 데이터 추출 중...")
-        self._progress(30)
-        
-        waveform_data = get_waveform_data(temp_audio, num_points=num_points)
+        self._log("▶ [Step 2] 파형 시각화 뷰어 띄우기 준비...")
+        self._progress(0)
+
+        if not os.path.exists(temp_audio) or not os.path.exists(json_path):
+            self._log("❌ 에러: 오디오 파일이나 JSON 파일이 존재하지 않습니다. Step 1을 먼저 진행해주세요.")
+            return None
+
+        # 저장된 JSON에서 무음 구간 로드
+        with open(json_path, 'r', encoding='utf-8') as f:
+            silence_list = json.load(f)
+
+        self._log(f"뷰어 창을 로드합니다. ({len(silence_list)}개의 무음 구간 표시)")
+        self._progress(50)
+
+        # 될 때까지 블로킹됨
+        display_waveform_with_silence(temp_audio, silence_segments=silence_list)
         
         self._progress(100)
         self._log("✅ 파형 데이터 추출 완료. 프론트엔드로 전송합니다.")

@@ -175,22 +175,22 @@
           </attribute>
           <column>
            <property name="text">
-            <string>구간</string>
+            <string>구간 (시작 ~ 끝)</string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>이유</string>
+            <string></string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>O</string>
+            <string></string>
            </property>
           </column>
           <column>
            <property name="text">
-            <string>X</string>
+            <string>자막</string>
            </property>
           </column>
          </widget>
