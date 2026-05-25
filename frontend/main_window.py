@@ -79,9 +79,10 @@ class MainWindow(QMainWindow):
 
         self._video_path = path
         self.label_file_path.setText(path)
-        self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
         self.btn_render.setEnabled(True)
         self._video_player.load(path)
+        self._video_player.seek(1)
+        self._start_analysis()
 
     # ── 재생 컨트롤 ───────────────────────────────────────────────────────────
 
@@ -134,6 +135,10 @@ class MainWindow(QMainWindow):
         # 팝업을 완료 화면으로 전환 (안 C)
         if self._analysis_popup:
             self._analysis_popup.mark_complete(count)
+
+        # 분석 완료 후 첫 프레임부터 자동 재생
+        self._video_player.seek(0)
+        self._video_player.play()
 
         # 안 B — 다음 액션 안내
         self.label_status.setText(
