@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QObject, pyqtSignal, QUrl
+from PyQt6.QtCore import QObject, pyqtSignal, QUrl, QTimer
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import QVBoxLayout
@@ -39,7 +39,8 @@ class VideoPlayer(QObject):
     def _on_media_status_changed(self, status: QMediaPlayer.MediaStatus):
         if status == QMediaPlayer.MediaStatus.LoadedMedia and self._preview_on_load:
             self._preview_on_load = False
-            self._player.setPosition(1)
+            self._player.play()
+            QTimer.singleShot(50, self._player.pause)
 
     def play(self):
         self._player.play()
