@@ -23,4 +23,4 @@ try:
         ydl.download([video_url])
     print("다운로드가 완료. backend/Data 폴더.")
 except Exception as e:
-    print(f"❌ 에러가 발생: {e}")
+    print(f"에러 발생: {e}")
