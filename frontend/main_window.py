@@ -117,6 +117,7 @@ class MainWindow(QMainWindow):
         self._ai_worker.progress_updated.connect(self.progress_bar.setValue)
         self._ai_worker.status_changed.connect(self._analysis_popup.update_status)
         self._ai_worker.status_changed.connect(self.label_status.setText)
+        self._ai_worker.waveform_ready.connect(self._waveform.set_waveform)
         self._ai_worker.analysis_complete.connect(self._on_analysis_complete)
         self._ai_worker.error_occurred.connect(self._on_analysis_error)
 

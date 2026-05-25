@@ -1,6 +1,7 @@
 import time
 import subprocess
 import json
+import math
 import random
 from PyQt6.QtCore import QThread, pyqtSignal
 
@@ -76,10 +77,27 @@ def _make_dummy_segments(duration_ms: int) -> list[dict]:
     return segments
 
 
+def _make_dummy_amplitudes(segments: list[dict], duration_ms: int, num_samples: int = 2000) -> list[float]:
+    amplitudes = [0.02] * num_samples
+    for seg in segments:
+        i_start = int(seg["start"] / duration_ms * num_samples)
+        i_end = int(seg["end"] / duration_ms * num_samples)
+        keep = seg.get("keep", True)
+        for i in range(max(0, i_start), min(num_samples, i_end)):
+            if keep:
+                t = i / num_samples
+                base = 0.45 + 0.35 * abs(math.sin(t * 120 + seg["start"] * 0.003))
+                amplitudes[i] = max(0.1, min(1.0, base + random.uniform(-0.15, 0.15)))
+            else:
+                amplitudes[i] = random.uniform(0.0, 0.06)
+    return amplitudes
+
+
 class AIWorker(QThread):
 
     progress_updated = pyqtSignal(int)
     status_changed = pyqtSignal(str)
+    waveform_ready = pyqtSignal(list, int)   # (amplitudes, duration_ms)
     analysis_complete = pyqtSignal(list)
     error_occurred = pyqtSignal(str)
 
@@ -127,6 +145,8 @@ class AIWorker(QThread):
 
             self.progress_updated.emit(100)
             self.status_changed.emit("분석 완료")
+            amplitudes = _make_dummy_amplitudes(segments, duration_ms)
+            self.waveform_ready.emit(amplitudes, duration_ms)
             self.analysis_complete.emit(segments)
 
         except Exception as e:
