@@ -93,7 +93,7 @@ class BackendController:
         self._log(f"뷰어 창을 로드합니다. ({len(silence_list)}개의 무음 구간 표시)")
         self._progress(50)
 
-        # viewer.py의 시각화 함수 호출 (창이 닫힐 때까지 블로킹됨)
+        # ㅊ될 때까지 블로킹됨)
         display_waveform_with_silence(temp_audio, silence_segments=silence_list)
         
         self._progress(100)
