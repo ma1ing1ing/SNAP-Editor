@@ -170,15 +170,18 @@ class AIWorker(QThread):
 
             try:
                 from backend_controller import BackendController
+                print("[DEBUG-C] _run_real 실행")
                 self._run_real(duration_ms, BackendController)
             except ImportError as e:
+                print(f"[DEBUG-C] _run_dummy 실행 (ImportError: {e})")
                 self.status_changed.emit(f"⚠ 백엔드 모듈 없음 — 더미 모드로 실행 ({e})")
                 self._run_dummy(duration_ms)
 
         except Exception as e:
+            print(f"[DEBUG-D] exception: {e}")
             self.error_occurred.emit(str(e))
 
-    # ── 실제 백엔드 연동 ──────────────────────────────────────────────────────
+    # ── 백엔드 연동 ──────────────────────────────────────────────────────
 
     def _run_real(self, duration_ms: int, BackendController):
         bc = BackendController(
@@ -203,7 +206,9 @@ class AIWorker(QThread):
             self.status_changed.emit("파형 데이터 추출 중...")
 
             silence_list = result["silence_list"]
+            print(f"[DEBUG-F] silence_list: {len(silence_list)}개, 첫항목: {silence_list[0] if silence_list else None}")
             segments = _convert_to_segments(silence_list, duration_ms)
+            print(f"[DEBUG-F] segments: {len(segments)}개")
             amplitudes = _extract_amplitudes(temp_audio, duration_ms)
 
         self.progress_updated.emit(100)

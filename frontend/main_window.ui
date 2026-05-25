@@ -45,27 +45,6 @@
        </spacer>
       </item>
       <item>
-       <widget class="QLabel" name="label_domain">
-        <property name="text">
-         <string>도메인:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QComboBox" name="combo_domain">
-        <item>
-         <property name="text">
-          <string>교수 강의</string>
-         </property>
-        </item>
-        <item>
-         <property name="text">
-          <string>gaming</string>
-         </property>
-        </item>
-       </widget>
-      </item>
-      <item>
        <widget class="QPushButton" name="btn_settings">
         <property name="text">
          <string>⚙ 설정</string>

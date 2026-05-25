@@ -63,7 +63,7 @@
         <item>
          <widget class="QLineEdit" name="input_word">
           <property name="text">
-           <string>펜타킬, 스틸, 백도어, 한타</string>
+           <string></string>
           </property>
           <property name="placeholderText">
            <string>단어 입력 (예: 음, 어, 그니까)</string>
