@@ -19,10 +19,9 @@ def format_time(seconds):
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
 def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small'):
-    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path}")
-    
-    # 설정 값에서 받은 모델 값을 로드, 기본 값 'small'
-    model = ststable.load_model(model_size) 
+    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
+
+    model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 

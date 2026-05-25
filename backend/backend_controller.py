@@ -6,7 +6,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
 from extract_audio import extract_audio
-from backend.editor import create_final_edited_video, add_subtitles_to_video
+from editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
 from viewer import display_waveform_with_silence, get_waveform_data
 
@@ -57,27 +57,27 @@ class BackendController:
 
         # 2. VAD 분석 (무음 구간 탐지)
         self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
-        silence_list = detect_and_tag_silence(temp_audio, threshold=threshold)
-        
+        _, vad_results = detect_silence(temp_audio)
+        silence_segments = vad_results.get("silence_segments", []) if vad_results else []
+
         self._progress(80)
-        
+
         # 3. 분석 결과를 JSON 파일로 저장
         self._log("상세 분석 결과 JSON 저장 중...")
         with open(output_json, 'w', encoding='utf-8') as f:
-            # 🚀 [수정 포인트 3] 단순 리스트 대신 멘티가 만든 상세 구조(detailed_json_data) 저장!
-            json.dump(detailed_json_data, f, indent=4, ensure_ascii=False)
-            
+            json.dump(silence_segments, f, indent=4, ensure_ascii=False)
+
         self._progress(100)
         self._log(f"✅ [Step 1] 완료. 상세 JSON 파일 저장됨: {output_json}")
-        
+
         # 다음 단계로 넘길 상태(State) 데이터 리턴
         return {
             "temp_audio": temp_audio,
             "json_path": output_json,
-            "silence_list": silence_list
+            "silence_list": silence_segments
         }
     
-    def run_step2_get_waveform_data(self, temp_audio, num_points=3000):
+    def run_step2_get_waveform_data(self, temp_audio, json_path, num_points=3000):
         """
         프론트엔드에서 파형을 그리기 위한 데이터를 요청할 때 사용합니다.
         """
@@ -97,7 +97,8 @@ class BackendController:
 
         # 될 때까지 블로킹됨
         display_waveform_with_silence(temp_audio, silence_segments=silence_list)
-        
+
+        waveform_data = get_waveform_data(temp_audio, num_points=num_points)
         self._progress(100)
         self._log("✅ 파형 데이터 추출 완료. 프론트엔드로 전송합니다.")
         return waveform_data
@@ -131,21 +132,21 @@ class BackendController:
         }
         
     def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result,
-                                   whisper_model_size='small'):
+                                   whisper_model="small"):
         """
         Step 4: 컷편집된 영상을 바탕으로 STT 및 자막 파일 생성
         """
-        self._log("▶ [Step 4] STT 및 자막 생성 시작...")
+        self._log(f"▶ [Step 4] STT 및 자막 생성 시작... (Whisper 모델: {whisper_model})")
         self._progress(0)
-        
+
         self._log("Faster-Whisper & Kiwi 기반 STT 변환 진행 중... (시간이 소요될 수 있습니다)")
         self._progress(20)
-        
+
         # STT 변환 및 자막 추출
-        srt_path, detected_lang = transcribe_video_to_srt(
-            edited_video, 
-            subtitle_srt, 
-            model_size=whisper_model_size
+        srt_path, detected_lang, _, _ = transcribe_video_to_srt(
+            edited_video,
+            subtitle_srt,
+            model_size=whisper_model
         )
         self._log(f"STT 완료. 자막 파일 생성됨: {srt_path} (감지된 언어: {detected_lang})")
         self._progress(70)
@@ -201,11 +202,14 @@ def run_pipeline(video_path, settings, on_progress=None):
     
     # 3. STT 및 불용어 탐지
     srt_out = "./backend/Data/subtitle.srt"
+    _models = ["tiny", "base", "small", "medium", "large"]
     model_size = "small"
     if isinstance(settings, dict):
-        model_val = settings.get("whisper_model", "small")
-        # int인 경우 처리 로직 (기본 small 사용)
-        model_size = "small"
+        model_val = settings.get("whisper_model", 2)
+        if isinstance(model_val, int) and 0 <= model_val < len(_models):
+            model_size = _models[model_val]
+        elif isinstance(model_val, str) and model_val in _models:
+            model_size = model_val
             
     _, _, stt_result, ai_result = transcribe_video_to_srt(video_path, srt_out, model_size=model_size)
     
