@@ -43,6 +43,8 @@ class SettingsDialog(QDialog):
         self.accept()
 
     def add_word(self):
+        from PyQt6.QtWidgets import QApplication
+        QApplication.inputMethod().commit()
         text = self.input_word.text().strip()
         if not text:
             return

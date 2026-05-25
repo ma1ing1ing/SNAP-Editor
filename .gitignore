@@ -10,17 +10,6 @@ AGENTS.md
 CLAUDE.md
 
 # 1. 테스트용 대용량 미디어 파일 (절대 깃허브에 올리지 말 것)
-# Python cache files
-__pycache__/
-*.py[cod]
-*$py.class
-
-# Local test/output data
-Data/
-backend/Data/
-output/
-
-# Media and generated files
 *.mp4
 *.MP4
 *.wav

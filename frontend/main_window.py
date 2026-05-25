@@ -8,6 +8,7 @@ from settings_dialog import SettingsDialog
 from analysis_popup import AnalysisPopup
 from video_player import VideoPlayer
 from workers.ai_worker import AIWorker
+from workers.render_worker import RenderWorker
 from utils.time_formatter import format_time
 from widgets.waveform_widget import WaveformWidget
 
@@ -22,6 +23,7 @@ class MainWindow(QMainWindow):
 
         self._video_path = None
         self._ai_worker = None
+        self._render_worker = None
         self._segments: list = []
         self._analysis_popup: AnalysisPopup | None = None
 
@@ -62,6 +64,9 @@ class MainWindow(QMainWindow):
         # AI
         self.btn_start_process.clicked.connect(self._start_analysis)
 
+        # 렌더링
+        self.btn_render.clicked.connect(self._start_render)
+
         # 설정
         self.btn_settings.clicked.connect(self._open_settings)
 
@@ -79,9 +84,9 @@ class MainWindow(QMainWindow):
 
         self._video_path = path
         self.label_file_path.setText(path)
-        self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
-        self.btn_render.setEnabled(True)
+        self.btn_render.setEnabled(False)
         self._video_player.load(path)
+        self._open_settings()
 
     # ── 재생 컨트롤 ───────────────────────────────────────────────────────────
 
@@ -117,6 +122,7 @@ class MainWindow(QMainWindow):
         self._ai_worker.progress_updated.connect(self.progress_bar.setValue)
         self._ai_worker.status_changed.connect(self._analysis_popup.update_status)
         self._ai_worker.status_changed.connect(self.label_status.setText)
+        self._ai_worker.waveform_ready.connect(self._waveform.set_waveform)
         self._ai_worker.analysis_complete.connect(self._on_analysis_complete)
         self._ai_worker.error_occurred.connect(self._on_analysis_error)
 
@@ -129,6 +135,7 @@ class MainWindow(QMainWindow):
 
     def _on_analysis_complete(self, segments: list):
         self._populate_segments(segments)
+        self.btn_render.setEnabled(True)
 
         count = len(segments)
         # 팝업을 완료 화면으로 전환 (안 C)
@@ -137,13 +144,55 @@ class MainWindow(QMainWindow):
 
         # 안 B — 다음 액션 안내
         self.label_status.setText(
-            f"✅ {count}개 구간 감지됨 — 오른쪽 목록에서 O / X로 구간을 승인해주세요"
+            f"✅ {count}개 구간 감지됨 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
 
     def _on_analysis_error(self, message: str):
         if self._analysis_popup:
             self._analysis_popup.reject()
         self.label_status.setText(f"⚠ 오류: {message} — 다시 시도해주세요")
+
+    # ── 렌더링 ────────────────────────────────────────────────────────────────
+
+    def _start_render(self):
+        if not self._video_path or not self._segments:
+            self.label_status.setText("⚠ 분석 완료 후 렌더링할 수 있습니다")
+            return
+
+        if self._render_worker and self._render_worker.isRunning():
+            return
+
+        self.btn_render.setEnabled(False)
+        self._render_worker = RenderWorker(self._video_path, self._segments)
+        self._render_worker.progress_updated.connect(self.progress_bar.setValue)
+        self._render_worker.status_changed.connect(self.label_status.setText)
+        self._render_worker.render_complete.connect(self._on_render_complete)
+        self._render_worker.error_occurred.connect(self._on_render_error)
+        self._render_worker.start()
+        self.label_status.setText("렌더링 시작...")
+
+    def _on_render_complete(self, output_path: str, updated_segments: list):
+        self._segments = updated_segments
+        self._refresh_segment_text()
+        self.btn_render.setEnabled(True)
+
+        # 결과 영상 플레이어에 로드
+        self._video_path = output_path
+        self.label_file_path.setText(output_path)
+        self._video_player.load(output_path)
+
+        self.label_status.setText("✅ 렌더링 완료 — 결과 영상을 재생해보세요")
+
+    def _on_render_error(self, message: str):
+        self.btn_render.setEnabled(True)
+        self.label_status.setText(f"⚠ 렌더링 오류: {message}")
+
+    def _refresh_segment_text(self):
+        """렌더링 완료 후 STT 텍스트를 list_segments 자막 컬럼에 반영."""
+        for row, seg in enumerate(self._segments):
+            item = self.list_segments.item(row, 3)
+            if item is not None:
+                item.setText(seg.get("text", ""))
 
     def _populate_segments(self, segments: list):
         self._segments = [dict(seg, keep=seg.get("keep", True)) for seg in segments]
@@ -201,7 +250,12 @@ class MainWindow(QMainWindow):
         dialog = SettingsDialog(parent=self)
         dialog.accepted.connect(self._highlight_words)
         dialog.accepted.connect(self._on_settings_saved)
+        dialog.rejected.connect(self._on_settings_cancelled)
         dialog.exec()
+
+    def _on_settings_cancelled(self):
+        if self._video_path:
+            self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
 
     def _on_settings_saved(self):
         s = QSettings("SNAP", "Editor")
@@ -229,9 +283,15 @@ class MainWindow(QMainWindow):
         self._highlight_words()
 
     def _on_subtitle_confirm(self):
+        from PyQt6.QtWidgets import QApplication
+        QApplication.inputMethod().commit()
         row = self.list_segments.currentRow()
         if 0 <= row < len(self._segments):
-            self._segments[row]["text"] = self.text_subtitle_edit.toPlainText()
+            new_text = self.text_subtitle_edit.toPlainText()
+            self._segments[row]["text"] = new_text
+            item = self.list_segments.item(row, 3)
+            if item is not None:
+                item.setText(new_text)
 
     def _highlight_words(self):
         words = self._load_highlight_words()

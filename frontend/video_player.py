@@ -1,4 +1,4 @@
-from PyQt6.QtCore import QObject, pyqtSignal, QUrl
+from PyQt6.QtCore import QObject, pyqtSignal, QUrl, QTimer
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
 from PyQt6.QtWidgets import QVBoxLayout
@@ -13,6 +13,7 @@ class VideoPlayer(QObject):
 
         self._video_frame = video_frame
         self._is_seeking = False
+        self._preview_on_load = False
 
         self._player = QMediaPlayer()
         self._audio = QAudioOutput()
@@ -27,12 +28,19 @@ class VideoPlayer(QObject):
         self._video_frame.setLayout(layout)
 
         self._player.positionChanged.connect(self._on_position_changed)
+        self._player.mediaStatusChanged.connect(self._on_media_status_changed)
 
     def _on_position_changed(self, position: int):
         if self._is_seeking:
             return
         duration = self._player.duration()
         self.position_changed.emit(position, duration)
+
+    def _on_media_status_changed(self, status: QMediaPlayer.MediaStatus):
+        if status == QMediaPlayer.MediaStatus.LoadedMedia and self._preview_on_load:
+            self._preview_on_load = False
+            self._player.play()
+            QTimer.singleShot(50, self._player.pause)
 
     def play(self):
         self._player.play()
@@ -44,6 +52,7 @@ class VideoPlayer(QObject):
         self._player.setPosition(position)
 
     def load(self, file_path: str):
+        self._preview_on_load = True
         self._player.setSource(QUrl.fromLocalFile(file_path))
 
     def set_seeking(self, is_seeking: bool):
