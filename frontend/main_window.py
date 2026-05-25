@@ -84,7 +84,7 @@ class MainWindow(QMainWindow):
 
         self._video_path = path
         self.label_file_path.setText(path)
-        self.btn_render.setEnabled(True)
+        self.btn_render.setEnabled(False)
         self._video_player.load(path)
         self._open_settings()
 
@@ -135,6 +135,7 @@ class MainWindow(QMainWindow):
 
     def _on_analysis_complete(self, segments: list):
         self._populate_segments(segments)
+        self.btn_render.setEnabled(True)
 
         count = len(segments)
         # 팝업을 완료 화면으로 전환 (안 C)
@@ -143,7 +144,7 @@ class MainWindow(QMainWindow):
 
         # 안 B — 다음 액션 안내
         self.label_status.setText(
-            f"✅ {count}개 구간 감지됨 — 오른쪽 목록에서 O / X로 구간을 승인해주세요"
+            f"✅ {count}개 구간 감지됨 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
 
     def _on_analysis_error(self, message: str):
