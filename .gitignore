@@ -2,6 +2,13 @@
 # Custom: SNAP-Editor 프로젝트 전용 무시 파일
 # =========================
 
+# AI 도구 및 로컬 설정 (원격 저장소에 올리지 않음)
+.opencode/
+.claude/
+graphify-out/
+AGENTS.md
+CLAUDE.md
+
 # 1. 테스트용 대용량 미디어 파일 (절대 깃허브에 올리지 말 것)
 *.mp4
 *.MP4
