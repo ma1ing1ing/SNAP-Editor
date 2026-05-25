@@ -57,7 +57,7 @@ class BackendController:
 
         # 2. VAD 분석 (무음 구간 탐지)
         self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
-        _, vad_results = detect_silence(temp_audio)
+        _, vad_results = detect_silence(temp_audio, threshold=threshold)
         silence_segments = vad_results.get("silence_segments", []) if vad_results else []
 
         self._progress(80)

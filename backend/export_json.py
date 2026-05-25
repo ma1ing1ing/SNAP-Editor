@@ -5,7 +5,7 @@ import torch
 import json
 
 # API 명세서에 맞춘 함수명: detect_silence
-def detect_silence(audio_path):
+def detect_silence(audio_path, threshold=0.5):
     # 파일이 없으면 빈 값 리턴 (에러 방지)
     if not os.path.exists(audio_path): 
         return [], {}
@@ -17,7 +17,7 @@ def detect_silence(audio_path):
     duration = len(y_original) / sr_original
     y_16k = librosa.resample(y_original, orig_sr=sr_original, target_sr=16000)
     audio_tensor = torch.from_numpy(y_16k)
-    speech_timestamps = get_speech_timestamps(audio_tensor, model, sampling_rate=16000)
+    speech_timestamps = get_speech_timestamps(audio_tensor, model, sampling_rate=16000, threshold=threshold)
     
     # 💡 순수 파일명 추출 (예: test_video.mp4 -> test_video)
     base_name = os.path.splitext(os.path.basename(audio_path))[0]
