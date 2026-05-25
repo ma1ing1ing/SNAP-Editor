@@ -150,10 +150,11 @@ class MainWindow(QMainWindow):
 
         tbl = self.list_segments
         tbl.setRowCount(0)
-        tbl.setColumnCount(3)
-        tbl.setColumnWidth(0, 200)
-        tbl.setColumnWidth(1, 40)
-        tbl.setColumnWidth(2, 40)
+        tbl.setColumnCount(4)
+        tbl.setColumnWidth(0, 140)
+        tbl.setColumnWidth(1, 35)
+        tbl.setColumnWidth(2, 35)
+        tbl.horizontalHeader().setStretchLastSection(True)
 
         for row, seg in enumerate(self._segments):
             tbl.insertRow(row)
@@ -172,6 +173,9 @@ class MainWindow(QMainWindow):
             btn_x.setStyleSheet("color: #c62828; font-weight: bold;")
             btn_x.clicked.connect(lambda _, r=row: self._set_keep(r, False))
             tbl.setCellWidget(row, 2, btn_x)
+
+            text_item = QTableWidgetItem(seg.get("text", ""))
+            tbl.setItem(row, 3, text_item)
 
             self._apply_row_color(row)
 

@@ -18,9 +18,9 @@ ydl_opts = {
 
 # 3. 다운로드 실행
 try:
-    print(f"📥 영상 다운로드를 시작합니다: {video_url}")
+    print(f"영상 다운로드 시작: {video_url}")
     with yt_dlp.YoutubeDL(ydl_opts) as ydl:
         ydl.download([video_url])
-    print("✅ 다운로드가 완료되었습니다! backend/Data 폴더를 확인해 보세요.")
+    print("다운로드가 완료. backend/Data 폴더.")
 except Exception as e:
-    print(f"❌ 에러가 발생했습니다: {e}")
+    print(f"❌ 에러가 발생: {e}")
