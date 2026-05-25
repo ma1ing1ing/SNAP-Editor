@@ -278,7 +278,11 @@ class MainWindow(QMainWindow):
     def _on_subtitle_confirm(self):
         row = self.list_segments.currentRow()
         if 0 <= row < len(self._segments):
-            self._segments[row]["text"] = self.text_subtitle_edit.toPlainText()
+            new_text = self.text_subtitle_edit.toPlainText()
+            self._segments[row]["text"] = new_text
+            item = self.list_segments.item(row, 3)
+            if item is not None:
+                item.setText(new_text)
 
     def _highlight_words(self):
         words = self._load_highlight_words()
