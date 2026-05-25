@@ -3,6 +3,7 @@ import sys
 import re
 import json
 import tempfile
+from typing import Optional
 from PyQt6.QtCore import QThread, pyqtSignal
 
 
@@ -90,7 +91,7 @@ class RenderWorker(QThread):
 
     _MODELS = ["tiny", "base", "small", "medium", "large"]
 
-    def __init__(self, video_path: str, segments: list[dict], settings: dict | None = None):
+    def __init__(self, video_path: str, segments: list, settings: Optional[dict] = None):
         super().__init__()
         self._video_path = video_path
         self._segments   = segments

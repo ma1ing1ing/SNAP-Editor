@@ -1,4 +1,5 @@
 import os
+from typing import Optional
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushButton, QVBoxLayout
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PyQt6.uic import loadUi
@@ -25,7 +26,7 @@ class MainWindow(QMainWindow):
         self._ai_worker = None
         self._render_worker = None
         self._segments: list = []
-        self._analysis_popup: AnalysisPopup | None = None
+        self._analysis_popup: Optional[AnalysisPopup] = None
 
         self._video_player = VideoPlayer(self.video_frame)
         self._waveform = self._setup_waveform()
@@ -316,7 +317,7 @@ class MainWindow(QMainWindow):
                 cursor.setCharFormat(highlight_fmt)
                 cursor = doc.find(word, cursor)
 
-    def _load_highlight_words(self) -> list[str]:
+    def _load_highlight_words(self):
         raw = QSettings("SNAP", "Editor").value("highlight_words", "")
         return [w.strip() for w in raw.split(",") if w.strip()]
 
