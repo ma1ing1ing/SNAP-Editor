@@ -18,13 +18,18 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None):
-    
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None, progress_callback=None):
+
     def emit_status(msg):
         if status_callback:
             status_callback(msg)
-    
+
+    def emit_progress(value):
+        if progress_callback:
+            progress_callback(value)
+
     emit_status(f"▶ STT 모델({model_size}) 로드 중...")
+    emit_progress(10)
     print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
 
     model = ststable.load_model(model_size)
@@ -32,6 +37,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     kiwi = Kiwi()
 
     emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
+    emit_progress(30)
     # 음성 인식 및 싱크 보정 실행
     result = model.transcribe(
         video_path, 
@@ -43,6 +49,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     # stable-ts의 결과 객체에서 언어 정보 가져오기
     detected_lang = result.language
     emit_status(f"▶ 자막 텍스트 보정 중... (언어: {detected_lang})")
+    emit_progress(70)
     print(f"▶ 감지된 언어: {detected_lang}")
 
     # 결과 데이터를 SRT 형식으로 가공 및 한국어 문장 부호 보정
@@ -96,6 +103,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
     emit_status("▶ AI 불용어 탐지 파이프라인 실행 중...")
+    emit_progress(85)
     ai_result = {}
     try:
         # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정

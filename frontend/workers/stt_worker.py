@@ -21,6 +21,7 @@ def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict
 
 class STTWorker(QThread):
 
+    progress_updated = pyqtSignal(int)
     status_changed  = pyqtSignal(str)
     stt_complete    = pyqtSignal(list)   # updated segments
     error_occurred  = pyqtSignal(str)
@@ -47,6 +48,7 @@ class STTWorker(QThread):
             whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
 
             bc = BackendController(
+                progress_callback=lambda p: self.progress_updated.emit(p),
                 log_callback=lambda m: self.status_changed.emit(m),
             )
 
