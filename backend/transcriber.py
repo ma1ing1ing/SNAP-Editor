@@ -30,9 +30,22 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     emit_status(f"▶ STT 모델({model_size}) 로드 중...")
     emit_progress(10)
-    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
-
-    model = ststable.load_model(model_size)
+    import platform
+    import torch
+    
+    # OS 및 환경에 따라 최적의 STT 모델 분기 처리
+    if platform.system() == "Darwin" and torch.backends.mps.is_available():
+        # Mac(Apple Silicon) 환경: GPU(MPS)를 지원하는 원본 whisper 사용
+        print(f"\n▶ [STT/자막] Mac(MPS) 환경 감지됨 - 원본 whisper 사용 (모델: {model_size})")
+        model = ststable.load_model(model_size)
+    else:
+        # Windows/Linux 환경: CPU/CUDA 최적화가 잘 된 faster-whisper 사용
+        print(f"\n▶ [STT/자막] Windows/Linux 환경 감지됨 - faster-whisper 사용 (모델: {model_size})")
+        try:
+            model = ststable.load_faster_whisper(model_size)
+        except Exception as e:
+            print(f"❌ faster-whisper 로드 실패 (패키지 미설치 등), 원본 whisper로 폴백: {e}")
+            model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 
