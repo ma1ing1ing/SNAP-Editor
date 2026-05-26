@@ -107,11 +107,12 @@ class RenderWorker(QThread):
 
     _MODELS = ["tiny", "base", "small", "medium", "large"]
 
-    def __init__(self, video_path: str, segments: list, settings: Optional[dict] = None):
+    def __init__(self, video_path: str, segments: list, settings: Optional[dict] = None, output_path: Optional[str] = None):
         super().__init__()
-        self._video_path = video_path
-        self._segments   = segments
-        self._settings   = settings or {}
+        self._video_path   = video_path
+        self._segments     = segments
+        self._settings     = settings or {}
+        self._output_path  = output_path
 
     def run(self):
         try:
@@ -131,7 +132,7 @@ class RenderWorker(QThread):
             data_dir     = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../backend/Data"))
             edited_video = os.path.join(data_dir, "final_edited_video.mp4")
             subtitle_srt = os.path.join(data_dir, "subtitle.srt")
-            final_result = os.path.join(data_dir, "final_with_subtitles.mp4")
+            final_result = self._output_path or os.path.join(data_dir, "final_with_subtitles.mp4")
 
             # 무음 구간(keep=False)만 추출 → 초 단위
             silence_list = [
