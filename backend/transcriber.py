@@ -49,7 +49,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     kiwi = Kiwi()
 
-    emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
+    emit_status("STT 음성 인식 중..")
     emit_progress(30)
     # 음성 인식 및 싱크 보정 실행 (단어별 타임스탬프를 켠 후 재구성해야 정교한 분리/병합이 가능함)
     result = model.transcribe(
