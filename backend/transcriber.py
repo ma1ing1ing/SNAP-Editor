@@ -38,12 +38,21 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
     emit_progress(30)
-    # 음성 인식 및 싱크 보정 실행
+    # 음성 인식 및 싱크 보정 실행 (단어별 타임스탬프를 켠 후 재구성해야 정교한 분리/병합이 가능함)
     result = model.transcribe(
         video_path, 
         language=None, 
-        word_timestamps=False,
+        word_timestamps=True,
         vad=False # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
+    )
+    
+    # 세그먼트가 너무 길게(또는 짧게) 나오는 것을 방지하기 위해 정교하게 재구성
+    result = (
+        result
+        .split_by_punctuation(['.', '。', '?', '？', '!', '！'])
+        .split_by_gap(0.5)
+        .merge_by_gap(0.2, max_words=3)
+        .split_by_length(max_chars=40, max_words=12)
     )
     
     # stable-ts의 결과 객체에서 언어 정보 가져오기
