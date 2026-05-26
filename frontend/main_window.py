@@ -10,6 +10,7 @@ from analysis_popup import AnalysisPopup
 from video_player import VideoPlayer
 from workers.ai_worker import AIWorker
 from workers.render_worker import RenderWorker
+from workers.stt_worker import STTWorker
 from utils.time_formatter import format_time
 from widgets.waveform_widget import WaveformWidget
 
@@ -24,6 +25,7 @@ class MainWindow(QMainWindow):
 
         self._video_path = None
         self._ai_worker = None
+        self._stt_worker = None
         self._render_worker = None
         self._segments: list = []
         self._analysis_popup: Optional[AnalysisPopup] = None
@@ -132,22 +134,40 @@ class MainWindow(QMainWindow):
         self._analysis_popup.rejected.connect(self._ai_worker.terminate)
 
         self._ai_worker.start()
-        print("[DEBUG-B] AI 분석 시작됨")
         self.label_status.setText("AI 분석 중...")
         self._analysis_popup.open()
 
     def _on_analysis_complete(self, segments: list):
-        print(f"[DEBUG-E] analysis_complete: {len(segments)}개")
         self._populate_segments(segments)
         self.btn_render.setEnabled(True)
 
         count = len(segments)
         if self._analysis_popup:
-            self._analysis_popup.mark_complete(count)
+            self._analysis_popup.mark_step1_complete(count)
 
+        self.label_status.setText(f"✅ {count}개 구간 감지됨 — 자막 생성 중...")
+
+        self._stt_worker = STTWorker(self._video_path, self._segments, self._load_settings())
+        self._stt_worker.status_changed.connect(self.label_status.setText)
+        if self._analysis_popup:
+            self._stt_worker.status_changed.connect(self._analysis_popup.update_status)
+        self._stt_worker.stt_complete.connect(self._on_stt_complete)
+        self._stt_worker.error_occurred.connect(self._on_stt_error)
+        self._stt_worker.start()
+
+    def _on_stt_complete(self, updated_segments: list):
+        self._segments = updated_segments
+        self._refresh_segment_text()
         self.label_status.setText(
-            f"✅ {count}개 구간 감지됨 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
+            "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
+        if self._analysis_popup:
+            self._analysis_popup.mark_complete(len(self._segments))
+
+    def _on_stt_error(self, message: str):
+        self.label_status.setText("⚠ 자막 생성 실패 — 구간 목록은 유지됩니다")
+        if self._analysis_popup:
+            self._analysis_popup.mark_complete(len(self._segments))
 
     def _on_analysis_error(self, message: str):
         if self._analysis_popup:
