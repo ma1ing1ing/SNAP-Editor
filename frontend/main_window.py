@@ -139,7 +139,6 @@ class MainWindow(QMainWindow):
 
     def _on_analysis_complete(self, segments: list):
         self._populate_segments(segments)
-        self.btn_render.setEnabled(True)
 
         count = len(segments)
         if self._analysis_popup:
@@ -156,11 +155,16 @@ class MainWindow(QMainWindow):
             self._stt_worker.status_changed.connect(self._analysis_popup.update_status)
         self._stt_worker.stt_complete.connect(self._on_stt_complete)
         self._stt_worker.error_occurred.connect(self._on_stt_error)
+        
+        # 취소 버튼 → STT 워커 중단 연결
+        if self._analysis_popup:
+            self._analysis_popup.rejected.connect(self._stt_worker.terminate)
+            
         self._stt_worker.start()
 
     def _on_stt_complete(self, updated_segments: list):
-        self._segments = updated_segments
-        self._refresh_segment_text()
+        self._populate_segments(updated_segments)
+        self.btn_render.setEnabled(True)
         self.label_status.setText(
             "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
@@ -198,6 +202,9 @@ class MainWindow(QMainWindow):
             return
 
         self.btn_render.setEnabled(False)
+        self.btn_open_file.setEnabled(False)
+        self.btn_start_process.setEnabled(False)
+        self.btn_settings.setEnabled(False)
         self._render_worker = RenderWorker(self._video_path, self._segments, self._load_settings(), output_path)
         self._render_worker.progress_updated.connect(self.progress_bar.setValue)
         self._render_worker.status_changed.connect(self.label_status.setText)
@@ -210,6 +217,9 @@ class MainWindow(QMainWindow):
         self._segments = updated_segments
         self._refresh_segment_text()
         self.btn_render.setEnabled(True)
+        self.btn_open_file.setEnabled(True)
+        self.btn_start_process.setEnabled(True)
+        self.btn_settings.setEnabled(True)
 
         # 결과 영상 플레이어에 로드 (원본 경로는 재렌더를 위해 유지)
         self.label_file_path.setText(output_path)
@@ -238,6 +248,9 @@ class MainWindow(QMainWindow):
 
     def _on_render_error(self, message: str):
         self.btn_render.setEnabled(True)
+        self.btn_open_file.setEnabled(True)
+        self.btn_start_process.setEnabled(True)
+        self.btn_settings.setEnabled(True)
         self.label_status.setText("⚠ 렌더링 실패 — 다시 시도해주세요")
         QMessageBox.critical(self, "렌더링 오류", f"{message}\n\n다시 시도해주세요.")
 
@@ -382,4 +395,5 @@ class MainWindow(QMainWindow):
         return {
             "silence_threshold": float(s.value("silence_threshold", 0.3)),
             "whisper_model": int(s.value("whisper_model", 3)),
+            "stopword_mode": s.value("stopword_mode", "default")
         }
