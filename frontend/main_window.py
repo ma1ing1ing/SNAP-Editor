@@ -148,6 +148,9 @@ class MainWindow(QMainWindow):
         self.label_status.setText(f"✅ {count}개 구간 감지됨 — 자막 생성 중...")
 
         self._stt_worker = STTWorker(self._video_path, self._segments, self._load_settings())
+        self._stt_worker.progress_updated.connect(self.progress_bar.setValue)
+        if self._analysis_popup:
+            self._stt_worker.progress_updated.connect(self._analysis_popup.update_progress)
         self._stt_worker.status_changed.connect(self.label_status.setText)
         if self._analysis_popup:
             self._stt_worker.status_changed.connect(self._analysis_popup.update_status)

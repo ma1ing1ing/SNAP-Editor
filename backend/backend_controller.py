@@ -117,7 +117,8 @@ class BackendController:
         
         # transcriber를 호출하며 status_callback을 전달
         srt_path, detected_lang, stt_result, ai_result = transcribe_video_to_srt(
-            video_path, srt_path, model_size=whisper_model, status_callback=self._log
+            video_path, srt_path, model_size=whisper_model,
+            status_callback=self._log, progress_callback=self._progress
         )
         
         self._progress(100)
