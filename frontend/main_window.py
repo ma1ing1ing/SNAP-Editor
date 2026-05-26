@@ -314,6 +314,21 @@ class MainWindow(QMainWindow):
         if item:
             item.setBackground(color)
 
+        btn_ok = self.list_segments.cellWidget(row, 1)
+        btn_x  = self.list_segments.cellWidget(row, 2)
+        if btn_ok:
+            btn_ok.setStyleSheet(
+                "color: #fff; background: #2e7d32; font-weight: bold; border-radius: 3px;"
+                if keep else
+                "color: #aaa; background: transparent; font-weight: normal;"
+            )
+        if btn_x:
+            btn_x.setStyleSheet(
+                "color: #fff; background: #c62828; font-weight: bold; border-radius: 3px;"
+                if not keep else
+                "color: #aaa; background: transparent; font-weight: normal;"
+            )
+
     # ── 설정 ──────────────────────────────────────────────────────────────────
 
     def _open_settings(self):
