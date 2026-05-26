@@ -106,66 +106,97 @@ class BackendController:
         self._log("✅ 파형 데이터 추출 완료. 프론트엔드로 전송합니다.")
         return waveform_data
 
-    def run_step3_render_video(self, input_video, json_path, edited_video):
+    def run_step2_stt(self, video_path, srt_path, whisper_model):
         """
-        Step 3: 승인된 JSON 데이터를 바탕으로 컷편집 렌더링
-        (Step 2는 프론트엔드에서 뷰어를 통해 유저 승인을 받는 단계이므로 백엔드에서는 분리됨)
+        Step 2: STTWorker에서 호출하는 통합 STT 메서드
         """
-        self._log("▶ [Step 3] 컷편집 영상 렌더링 시작...")
+        self._log(f"▶ STT 모델({whisper_model}) 로드 중...")
         self._progress(0)
         
-        if not os.path.exists(json_path):
-            self._log(f"❌ JSON 파일을 찾을 수 없습니다: {json_path}")
-            return None
-            
-        with open(json_path, 'r', encoding='utf-8') as f:
-            silence_list = json.load(f)
-            
-        self._log(f"JSON 데이터 로드 완료 (무음 구간 {len(silence_list)}개). 렌더링 진행 중...")
-        self._progress(20)
+        from transcriber import transcribe_video_to_srt
         
-        # FFmpeg를 활용한 비디오 렌더링 시작 (editor.py 로직)
-        create_final_edited_video(input_video, silence_list, edited_video)
+        # transcriber를 호출하며 status_callback을 전달
+        srt_path, detected_lang, stt_result, ai_result = transcribe_video_to_srt(
+            video_path, srt_path, model_size=whisper_model, status_callback=self._log
+        )
         
         self._progress(100)
-        self._log(f"✅ [Step 3] 완료. 편집된 영상 저장됨: {edited_video}")
-        
-        return {
-            "edited_video": edited_video
-        }
-        
-    def run_step4_stt_and_subtitle(self, edited_video, subtitle_srt, final_result,
-                                   whisper_model="small"):
+        return stt_result, ai_result
+
+    def run_final_render(self, input_video, segments, output_video):
         """
-        Step 4: 컷편집된 영상을 바탕으로 STT 및 자막 파일 생성
+        프론트엔드에서 수정한 segments를 바로 받아 렌더링하고 자막을 병합하는 최종 메서드
         """
-        self._log(f"▶ [Step 4] STT 및 자막 생성 시작... (Whisper 모델: {whisper_model})")
         self._progress(0)
-
-        self._log("Faster-Whisper & Kiwi 기반 STT 변환 진행 중... (시간이 소요될 수 있습니다)")
-        self._progress(20)
-
-        # STT 변환 및 자막 추출
-        srt_path, detected_lang, _, ai_result = transcribe_video_to_srt(
-            edited_video,
-            subtitle_srt,
-            model_size=whisper_model
-        )
-        self._log(f"STT 완료. 자막 파일 생성됨: {srt_path} (감지된 언어: {detected_lang})")
-        self._progress(70)
-
-        # 컷편집된 영상에 자막을 메타데이터 트랙으로 병합
-        self._log("자막을 영상에 병합 중...")
-        success = add_subtitles_to_video(edited_video, srt_path, final_result, language=detected_lang)
-
+        self._log("▶ [최종 렌더링] 컷편집 영상 렌더링 시작...")
+        
+        # 1. segments에서 잘라낼 무음 구간만 초(s) 단위로 추출
+        silence_segments = [
+            {"start": seg["start"] / 1000.0, "end": seg["end"] / 1000.0}
+            for seg in segments if not seg.get("keep", True)
+        ]
+        
+        # 2. 영상 컷편집 실행
+        temp_edited = os.path.join(_DATA_DIR, "temp_edited.mp4")
+        create_final_edited_video(input_video, silence_segments, temp_edited)
+        self._progress(50)
+        
+        # 3. STT를 돌리지 않고, segments에 담긴 텍스트로 즉석에서 SRT 생성
+        self._log("▶ 사용자 수정 자막 기반 SRT 생성 중...")
+        subtitle_srt = os.path.join(_DATA_DIR, "subtitle.srt")
+        from transcriber import format_time
+        with open(subtitle_srt, "w", encoding="utf-8") as f:
+            new_current_time = 0.0
+            subtitle_index = 1
+            for seg in segments:
+                if seg.get("keep", True):
+                    duration = (seg["end"] - seg["start"]) / 1000.0
+                    text = seg.get("text", "").strip()
+                    if text and text != "(불용어)":
+                        start_str = format_time(new_current_time)
+                        end_str = format_time(new_current_time + duration)
+                        f.write(f"{subtitle_index}\n{start_str} --> {end_str}\n{text}\n\n")
+                        subtitle_index += 1
+                    new_current_time += duration
+                    
+        # 4. 컷편집된 영상에 자막 병합
+        self._log("▶ 자막 병합 중...")
+        success = add_subtitles_to_video(temp_edited, subtitle_srt, output_video, language="ko")
+        
         if success:
             self._progress(100)
-            self._log(f"✅ [Step 4] 완료. 최종 영상(자막 포함) 생성됨: {final_result}")
+            self._log(f"✅ 최종 영상 생성 완료: {output_video}")
+            
+            # 5. 캐싱해두었던 원본 불용어 데이터 불러오기
+            cut_points = []
+            cached_ai_path = os.path.join(_DATA_DIR, "cached_ai_result.json")
+            if os.path.exists(cached_ai_path):
+                with open(cached_ai_path, "r", encoding="utf-8") as f:
+                    ai_res = json.load(f)
+                    cut_points = ai_res.get("cut_points", [])
+                
+                # 사용 완료된 캐시 파일 삭제
+                try:
+                    os.remove(cached_ai_path)
+                except Exception:
+                    pass
+                    
+            # 6. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
+            try:
+                if os.path.exists(temp_edited):
+                    os.remove(temp_edited)
+                
+                # 사용자가 SRT 파일을 따로 쓸 수 있도록 최종 영상과 같은 이름으로 저장
+                if os.path.exists(subtitle_srt):
+                    import shutil
+                    final_srt_path = os.path.splitext(output_video)[0] + ".srt"
+                    shutil.move(subtitle_srt, final_srt_path)
+            except Exception:
+                pass
+                    
             return {
-                "final_result": final_result,
-                "subtitle_srt": subtitle_srt,
-                "language": detected_lang,
-                "cut_points": ai_result.get("cut_points", []) if ai_result else [],
+                "final_result": output_video,
+                "cut_points": cut_points
             }
         else:
             self._log("❌ 자막 병합 실패")

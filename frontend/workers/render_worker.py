@@ -122,61 +122,31 @@ class RenderWorker(QThread):
             if backend_path not in sys.path:
                 sys.path.insert(0, backend_path)
 
-            from backend_controller import BackendController
+            from backend_controller import BackendController # type: ignore
 
             bc = BackendController(
-                progress_callback=lambda p: self.progress_updated.emit(int(p * 0.5)),
+                progress_callback=lambda p: self.progress_updated.emit(p),
                 log_callback=lambda m: self.status_changed.emit(m),
             )
 
             data_dir     = os.path.normpath(os.path.join(os.path.dirname(__file__), "../../backend/Data"))
-            edited_video = os.path.join(data_dir, "final_edited_video.mp4")
-            subtitle_srt = os.path.join(data_dir, "subtitle.srt")
             final_result = self._output_path or os.path.join(data_dir, "final_with_subtitles.mp4")
 
-            # 무음 구간(keep=False)만 추출 → 초 단위
-            silence_list = [
-                {"start": seg["start"] / 1000.0, "end": seg["end"] / 1000.0}
-                for seg in self._segments
-                if not seg.get("keep", True)
-            ]
-
-            # Step 3: 컷편집 렌더링 (silence JSON을 임시 파일로 전달)
-            self.status_changed.emit("컷편집 렌더링 중...")
-            self.progress_updated.emit(5)
-
-            tmp_fd, tmp_json = tempfile.mkstemp(suffix=".json")
-            try:
-                with os.fdopen(tmp_fd, "w") as f:
-                    json.dump(silence_list, f)
-                result3 = bc.run_step3_render_video(self._video_path, tmp_json, edited_video)
-            finally:
-                os.unlink(tmp_json)
-
-            if result3 is None:
-                raise RuntimeError("컷편집 렌더링 실패")
-
-            # Step 4: STT + 자막 생성
-            self.status_changed.emit("자막 생성 중... (STT, 시간이 걸립니다)")
-            self.progress_updated.emit(55)
-
-            bc2 = BackendController(
-                progress_callback=lambda p: self.progress_updated.emit(int(50 + p * 0.5)),
-                log_callback=lambda m: self.status_changed.emit(m),
+            self.status_changed.emit("최종 렌더링 및 자막 병합 중...")
+            
+            result = bc.run_final_render(
+                input_video=self._video_path,
+                segments=self._segments,
+                output_video=final_result
             )
-            model_idx = int(self._settings.get("whisper_model", 2))
-            whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
-            result4 = bc2.run_step4_stt_and_subtitle(edited_video, subtitle_srt, final_result,
-                                                     whisper_model=whisper_model)
-            if result4 is None:
-                raise RuntimeError("STT 자막 생성 실패")
 
-            # SRT 파싱 → 원본 구간에 텍스트 매핑
-            srt_entries      = _parse_srt(subtitle_srt)
-            updated_segments = _assign_text_to_segments(self._segments, srt_entries)
+            if not result:
+                raise RuntimeError("렌더링 실패")
+
+            updated_segments = [dict(seg) for seg in self._segments]
 
             # AI 불용어 cut_points → keep=False 반영
-            cut_points = result4.get("cut_points", [])
+            cut_points = result.get("cut_points", [])
             if cut_points:
                 updated_segments = _apply_cut_points(updated_segments, cut_points)
 

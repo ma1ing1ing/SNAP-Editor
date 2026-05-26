@@ -84,7 +84,19 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
     try:
         # v=1(비디오), a=1(오디오)를 쌍으로 묶어서 순서대로 이어 붙임
         joined = ffmpeg.concat(*streams, v=1, a=1)
-        joined = ffmpeg.output(joined, output_file)
+        
+        # 화질 저하를 막기 위해 고화질 인코딩 옵션(CRF 18) 명시
+        joined = ffmpeg.output(
+            joined, 
+            output_file,
+            **{
+                'c:v': 'libx264',  # H.264 비디오 코덱
+                'crf': 18,         # 화질 옵션 (0~51, 낮을수록 고화질. 18은 시각적 무손실 수준)
+                'preset': 'fast',  # 인코딩 속도
+                'c:a': 'aac',      # 오디오 코덱
+                'b:a': '192k'      # 오디오 비트레이트
+            }
+        )
         
         # 실제 렌더링 실행
         ffmpeg.run(joined, overwrite_output=True, capture_stdout=True, capture_stderr=True)

@@ -41,17 +41,19 @@ class STTWorker(QThread):
             if backend_path not in sys.path:
                 sys.path.insert(0, backend_path)
 
-            from transcriber import transcribe_video_to_srt
+            from backend_controller import BackendController
 
             model_idx     = int(self._settings.get("whisper_model", 2))
             whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
 
-            self.status_changed.emit(f"자막 생성 중... (Whisper {whisper_model})")
+            bc = BackendController(
+                log_callback=lambda m: self.status_changed.emit(m),
+            )
 
             with tempfile.TemporaryDirectory() as tmp:
                 srt_path = os.path.join(tmp, "subtitle.srt")
-                _, _, stt_result, _ = transcribe_video_to_srt(
-                    self._video_path, srt_path, model_size=whisper_model
+                stt_result, _ = bc.run_step2_stt(
+                    self._video_path, srt_path, whisper_model
                 )
 
             updated = _assign_stt_to_segments(self._segments, stt_result)

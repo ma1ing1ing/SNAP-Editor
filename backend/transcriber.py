@@ -18,13 +18,20 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small'):
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None):
+    
+    def emit_status(msg):
+        if status_callback:
+            status_callback(msg)
+    
+    emit_status(f"▶ STT 모델({model_size}) 로드 중...")
     print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
 
     model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 
+    emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
     # 음성 인식 및 싱크 보정 실행
     result = model.transcribe(
         video_path, 
@@ -35,6 +42,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     
     # stable-ts의 결과 객체에서 언어 정보 가져오기
     detected_lang = result.language
+    emit_status(f"▶ 자막 텍스트 보정 중... (언어: {detected_lang})")
     print(f"▶ 감지된 언어: {detected_lang}")
 
     # 결과 데이터를 SRT 형식으로 가공 및 한국어 문장 부호 보정
@@ -87,6 +95,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         })
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
+    emit_status("▶ AI 불용어 탐지 파이프라인 실행 중...")
     ai_result = {}
     try:
         # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정
@@ -101,6 +110,13 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         # 결과를 JSON으로 저장
         ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
         with open(ai_output_path, "w", encoding="utf-8") as f:
+            json.dump(ai_result, f, ensure_ascii=False, indent=2)
+            
+        # 🌟 원본 타임라인 기반 불용어 데이터를 RenderWorker에서 쓸 수 있도록 캐싱
+        backend_data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "Data"))
+        os.makedirs(backend_data_dir, exist_ok=True)
+        cached_ai_path = os.path.join(backend_data_dir, "cached_ai_result.json")
+        with open(cached_ai_path, "w", encoding="utf-8") as f:
             json.dump(ai_result, f, ensure_ascii=False, indent=2)
             
         print(f"✅ 불용어 탐지 완료: 총 {len(ai_result.get('cut_points', []))}개의 불용어 구간 발견")
