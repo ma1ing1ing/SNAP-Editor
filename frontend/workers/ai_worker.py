@@ -160,4 +160,25 @@ class AIWorker(QThread):
         self.waveform_ready.emit(amplitudes, duration_ms)
         self.analysis_complete.emit(segments)
 
+    # ── 더미 모드 (백엔드 없을 때) ──────────────────────────────────────
+    def _run_dummy(self, duration_ms: int):
+        self.status_changed.emit("더미 모드: 가상 구간 생성 중...")
+        self.progress_updated.emit(30)
 
+        # 10초 간격으로 발화/무음 구간을 교차 생성
+        chunk = 10_000
+        segments = []
+        t = 0
+        while t < duration_ms:
+            end = min(t + chunk, duration_ms)
+            is_keep = (t // chunk) % 2 == 0
+            segments.append({"start": t, "end": end, "text": "", "keep": is_keep})
+            t = end
+
+        # 평탄한 더미 파형
+        amplitudes = [0.3 + 0.1 * math.sin(i * 0.1) for i in range(2000)]
+
+        self.progress_updated.emit(100)
+        self.status_changed.emit("⚠ 더미 모드 완료 — 실제 분석이 아닙니다")
+        self.waveform_ready.emit(amplitudes, duration_ms)
+        self.analysis_complete.emit(segments)
