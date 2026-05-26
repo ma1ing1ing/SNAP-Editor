@@ -120,13 +120,15 @@ class BackendController:
         with open(subtitle_srt, "w", encoding="utf-8") as f:
             new_current_time = 0.0
             subtitle_index = 1
+            # 자막 싱크가 약간 빠르게 나오는 현상을 방지하기 위해 0.15초(150ms) 지연 보정 적용
+            delay_offset = 0.15
             for seg in segments:
                 if seg.get("keep", True):
                     duration = (seg["end"] - seg["start"]) / 1000.0
                     text = seg.get("text", "").strip()
                     if text and text != "(불용어)":
-                        start_str = format_time(new_current_time)
-                        end_str = format_time(new_current_time + duration)
+                        start_str = format_time(new_current_time + delay_offset)
+                        end_str = format_time(new_current_time + duration + delay_offset)
                         f.write(f"{subtitle_index}\n{start_str} --> {end_str}\n{text}\n\n")
                         subtitle_index += 1
                     new_current_time += duration

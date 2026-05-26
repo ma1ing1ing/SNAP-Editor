@@ -30,26 +30,13 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
 
     emit_status(f"▶ STT 모델({model_size}) 로드 중...")
     emit_progress(10)
-    import platform
-    import torch
-    
-    # OS 및 환경에 따라 최적의 STT 모델 분기 처리
-    if platform.system() == "Darwin" and torch.backends.mps.is_available():
-        # Mac(Apple Silicon) 환경: GPU(MPS)를 지원하는 원본 whisper 사용
-        print(f"\n▶ [STT/자막] Mac(MPS) 환경 감지됨 - 원본 whisper 사용 (모델: {model_size})")
-        model = ststable.load_model(model_size)
-    else:
-        # Windows/Linux 환경: CPU/CUDA 최적화가 잘 된 faster-whisper 사용
-        print(f"\n▶ [STT/자막] Windows/Linux 환경 감지됨 - faster-whisper 사용 (모델: {model_size})")
-        try:
-            model = ststable.load_faster_whisper(model_size)
-        except Exception as e:
-            print(f"❌ faster-whisper 로드 실패 (패키지 미설치 등), 원본 whisper로 폴백: {e}")
-            model = ststable.load_model(model_size)
+    print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
+
+    model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 
-    emit_status("STT 음성 인식 중..")
+    emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
     emit_progress(30)
     # 음성 인식 및 싱크 보정 실행 (단어별 타임스탬프를 켠 후 재구성해야 정교한 분리/병합이 가능함)
     result = model.transcribe(
@@ -63,9 +50,9 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     result = (
         result
         .split_by_punctuation(['.', '。', '?', '？', '!', '！'])
-        .split_by_gap(0.5)
-        .merge_by_gap(0.2, max_words=3)
-        .split_by_length(max_chars=40, max_words=12)
+        .split_by_gap(0.8)          # 0.5에서 0.8로 늘려 더 긴 호흡으로 묶음
+        .merge_by_gap(0.3, max_words=5) # 0.2에서 0.3으로 늘려 짧은 세그먼트 병합 범위 확대
+        .split_by_length(max_chars=60, max_words=18) # 최대 글자 수 40->60, 단어 수 12->18로 늘려 문장을 더 길게 유지
     )
     
     # stable-ts의 결과 객체에서 언어 정보 가져오기
@@ -90,8 +77,10 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
                     if last_tag.startswith('EF') or text[-1] in ['다', '요', '까', '죠']:
                         text += "."
             
-            start_time = format_time(segment.start)
-            end_time = format_time(segment.end)
+            # 자막 싱크가 약간 빠르게 나오는 현상을 방지하기 위해 0.15초(150ms) 지연 보정 적용
+            delay_offset = 0.15
+            start_time = format_time(segment.start + delay_offset)
+            end_time = format_time(segment.end + delay_offset)
             
             srt_file.write(f"{i}\n{start_time} --> {end_time}\n{text}\n\n")
 
