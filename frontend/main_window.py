@@ -185,8 +185,17 @@ class MainWindow(QMainWindow):
         if self._render_worker and self._render_worker.isRunning():
             return
 
+        output_path, _ = QFileDialog.getSaveFileName(
+            self,
+            "렌더링 결과 저장",
+            os.path.splitext(self._video_path)[0] + "_edited.mp4",
+            "Videos (*.mp4)",
+        )
+        if not output_path:
+            return
+
         self.btn_render.setEnabled(False)
-        self._render_worker = RenderWorker(self._video_path, self._segments, self._load_settings())
+        self._render_worker = RenderWorker(self._video_path, self._segments, self._load_settings(), output_path)
         self._render_worker.progress_updated.connect(self.progress_bar.setValue)
         self._render_worker.status_changed.connect(self.label_status.setText)
         self._render_worker.render_complete.connect(self._on_render_complete)
@@ -205,6 +214,25 @@ class MainWindow(QMainWindow):
         self._video_player.load(output_path)
 
         self.label_status.setText("✅ 렌더링 완료 — 결과 영상을 재생해보세요")
+
+        original_ms = max((s.get("end", 0) for s in self._segments), default=0)
+        edited_ms   = sum(s["end"] - s["start"] for s in self._segments if s.get("keep", True))
+        cut_ms      = original_ms - edited_ms
+
+        def _fmt(ms: int) -> str:
+            s = ms // 1000
+            m, s = divmod(s, 60)
+            h, m = divmod(m, 60)
+            return f"{h:02d}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
+
+        QMessageBox.information(
+            self,
+            "렌더링 완료",
+            f"저장 경로\n{output_path}\n\n"
+            f"원본 길이   {_fmt(original_ms)}\n"
+            f"편집 길이   {_fmt(edited_ms)}\n"
+            f"단축된 시간  {_fmt(cut_ms)}",
+        )
 
     def _on_render_error(self, message: str):
         self.btn_render.setEnabled(True)
