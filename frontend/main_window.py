@@ -159,8 +159,7 @@ class MainWindow(QMainWindow):
         self._stt_worker.start()
 
     def _on_stt_complete(self, updated_segments: list):
-        self._segments = updated_segments
-        self._refresh_segment_text()
+        self._populate_segments(updated_segments)
         self.label_status.setText(
             "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )

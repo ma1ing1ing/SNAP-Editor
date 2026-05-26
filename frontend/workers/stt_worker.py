@@ -5,18 +5,43 @@ from PyQt6.QtCore import QThread, pyqtSignal
 
 
 def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict]:
-    """STT 결과(초 단위)를 segments(ms 단위)의 text 필드에 매핑."""
-    updated = [dict(seg) for seg in segments]
-    for stt_seg in stt_result.get("segments", []):
-        start_ms = int(stt_seg["start"] * 1000)
-        text = stt_seg.get("text", "").strip()
-        if not text:
+    """
+    VAD keep=True 구간을 STT 문장 경계로 분리.
+    keep=False(무음) 구간은 그대로 유지.
+    """
+    stt_segs = sorted(stt_result.get("segments", []), key=lambda s: s["start"])
+    result = []
+
+    for seg in segments:
+        if not seg.get("keep", True):
+            result.append(dict(seg))
             continue
-        for seg in updated:
-            if seg.get("keep", True) and seg["start"] <= start_ms <= seg["end"]:
-                seg["text"] = (seg["text"] + " " + text).strip()
-                break
-    return updated
+
+        # 이 VAD 구간과 겹치는 STT 문장 추출
+        matching = [
+            s for s in stt_segs
+            if int(s["end"] * 1000) > seg["start"] and int(s["start"] * 1000) < seg["end"]
+        ]
+
+        if not matching:
+            result.append(dict(seg))
+            continue
+
+        cursor = seg["start"]
+        for stt in matching:
+            stt_start = max(int(stt["start"] * 1000), seg["start"])
+            stt_end   = min(int(stt["end"]   * 1000), seg["end"])
+
+            if stt_start - cursor > 100:
+                result.append({**seg, "start": cursor, "end": stt_start, "text": ""})
+
+            result.append({**seg, "start": stt_start, "end": stt_end, "text": stt.get("text", "").strip()})
+            cursor = stt_end
+
+        if seg["end"] - cursor > 100:
+            result.append({**seg, "start": cursor, "end": seg["end"], "text": ""})
+
+    return result
 
 
 class STTWorker(QThread):
