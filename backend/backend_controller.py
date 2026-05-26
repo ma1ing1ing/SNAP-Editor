@@ -76,7 +76,7 @@ class BackendController:
             "silence_list": silence_segments
         }
     
-    def run_step2_stt(self, video_path, srt_path, whisper_model):
+    def run_step2_stt(self, video_path, srt_path, whisper_model, stopword_mode="default"):
         """
         Step 2: STTWorker에서 호출하는 통합 STT 메서드
         """
@@ -88,7 +88,8 @@ class BackendController:
         # transcriber를 호출하며 status_callback을 전달
         srt_path, detected_lang, stt_result, ai_result = transcribe_video_to_srt(
             video_path, srt_path, model_size=whisper_model,
-            status_callback=self._log, progress_callback=self._progress
+            status_callback=self._log, progress_callback=self._progress,
+            stopword_mode=stopword_mode
         )
         
         self._progress(100)

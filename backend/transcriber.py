@@ -18,7 +18,7 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None, progress_callback=None):
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None, progress_callback=None, stopword_mode="default"):
 
     def emit_status(msg):
         if status_callback:
@@ -86,7 +86,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     for segment in result.segments:
         words_list = []
 
-        if hasattr(segment, "words"):
+        if hasattr(segment, "words") and segment.words:
             for w in segment.words:
                 words_list.append({
                     "word": w.word,
@@ -110,7 +110,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         ai_result = run_ai_pipeline(
             video_path=video_path,
             params={
-                "mode": "default",
+                "mode": stopword_mode,
                 "stt_result": stt_result
             }
         )
