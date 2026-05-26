@@ -89,57 +89,6 @@ def _extract_amplitudes(audio_path: str, duration_ms: int, num_samples: int = 20
         return []
 
 
-# ── 더미 폴백 (백엔드 의존성 없을 때) ──────────────────────────────────────
-
-def _make_dummy_segments(duration_ms: int) -> list[dict]:
-    dummy_texts = [
-        "안녕하세요 오늘은 수학 문제를 풀어볼게요",
-        "이 문제는 조금 까다롭지만 차근차근 보면",
-        "먼저 조건을 정리해봅시다",
-        "여기서 핵심은 이 부분이에요",
-        "그러니까 이렇게 풀 수 있습니다",
-        "다음 단계로 넘어가볼게요",
-        "이 값을 대입하면",
-        "최종 답은 이렇게 나옵니다",
-        "이해가 되셨나요",
-        "다음 문제도 같은 방식으로 접근하면 돼요",
-    ]
-    segments = []
-    cursor = 0
-    idx = 0
-    while cursor < duration_ms - 3000:
-        speech_len = random.randint(2000, 5000)
-        end = min(cursor + speech_len, duration_ms)
-        segments.append({"start": cursor, "end": end,
-                          "text": dummy_texts[idx % len(dummy_texts)], "keep": True})
-        cursor = end
-        idx += 1
-        if random.random() < 0.5:
-            silence_len = random.randint(1000, 4000)
-            silence_end = min(cursor + silence_len, duration_ms)
-            segments.append({"start": cursor, "end": silence_end, "text": "", "keep": False})
-            cursor = silence_end
-        if cursor >= duration_ms:
-            break
-    return segments
-
-
-def _make_dummy_amplitudes(segments: list[dict], duration_ms: int, num_samples: int = 2000) -> list[float]:
-    amplitudes = [0.02] * num_samples
-    for seg in segments:
-        i_start = int(seg["start"] / duration_ms * num_samples)
-        i_end = int(seg["end"] / duration_ms * num_samples)
-        keep = seg.get("keep", True)
-        for i in range(max(0, i_start), min(num_samples, i_end)):
-            if keep:
-                t = i / num_samples
-                base = 0.45 + 0.35 * abs(math.sin(t * 120 + seg["start"] * 0.003))
-                amplitudes[i] = max(0.1, min(1.0, base + random.uniform(-0.15, 0.15)))
-            else:
-                amplitudes[i] = random.uniform(0.0, 0.06)
-    return amplitudes
-
-
 # ── Worker ──────────────────────────────────────────────────────────────────
 
 class AIWorker(QThread):
@@ -170,15 +119,12 @@ class AIWorker(QThread):
 
             try:
                 from backend_controller import BackendController
-                print("[DEBUG-C] _run_real 실행")
                 self._run_real(duration_ms, BackendController)
             except ImportError as e:
-                print(f"[DEBUG-C] _run_dummy 실행 (ImportError: {e})")
                 self.status_changed.emit(f"⚠ 백엔드 모듈 없음 — 더미 모드로 실행 ({e})")
                 self._run_dummy(duration_ms)
 
         except Exception as e:
-            print(f"[DEBUG-D] exception: {e}")
             self.error_occurred.emit(str(e))
 
     # ── 백엔드 연동 ──────────────────────────────────────────────────────
@@ -206,9 +152,7 @@ class AIWorker(QThread):
             self.status_changed.emit("파형 데이터 추출 중...")
 
             silence_list = result["silence_list"]
-            print(f"[DEBUG-F] silence_list: {len(silence_list)}개, 첫항목: {silence_list[0] if silence_list else None}")
             segments = _convert_to_segments(silence_list, duration_ms)
-            print(f"[DEBUG-F] segments: {len(segments)}개")
             amplitudes = _extract_amplitudes(temp_audio, duration_ms)
 
         self.progress_updated.emit(100)
@@ -216,27 +160,4 @@ class AIWorker(QThread):
         self.waveform_ready.emit(amplitudes, duration_ms)
         self.analysis_complete.emit(segments)
 
-    # ── 더미 폴백 ─────────────────────────────────────────────────────────────
 
-    def _run_dummy(self, duration_ms: int):
-        self.status_changed.emit("무음 구간 감지 중... (VAD 시뮬레이션)")
-        for p in range(10, 50, 5):
-            self.progress_updated.emit(p)
-            import time; time.sleep(0.15)
-
-        self.status_changed.emit("구간 분석 중...")
-        segments = _make_dummy_segments(duration_ms)
-        for p in range(50, 85, 5):
-            self.progress_updated.emit(p)
-            import time; time.sleep(0.15)
-
-        self.status_changed.emit("자막 생성 중... (STT 시뮬레이션)")
-        for p in range(85, 101, 5):
-            self.progress_updated.emit(p)
-            import time; time.sleep(0.1)
-
-        self.progress_updated.emit(100)
-        self.status_changed.emit("분석 완료 (더미 모드)")
-        amplitudes = _make_dummy_amplitudes(segments, duration_ms)
-        self.waveform_ready.emit(amplitudes, duration_ms)
-        self.analysis_complete.emit(segments)
