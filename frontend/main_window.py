@@ -208,8 +208,7 @@ class MainWindow(QMainWindow):
         self._refresh_segment_text()
         self.btn_render.setEnabled(True)
 
-        # 결과 영상 플레이어에 로드
-        self._video_path = output_path
+        # 결과 영상 플레이어에 로드 (원본 경로는 재렌더를 위해 유지)
         self.label_file_path.setText(output_path)
         self._video_player.load(output_path)
 
@@ -240,11 +239,13 @@ class MainWindow(QMainWindow):
         QMessageBox.critical(self, "렌더링 오류", f"{message}\n\n다시 시도해주세요.")
 
     def _refresh_segment_text(self):
-        """렌더링 완료 후 STT 텍스트를 list_segments 자막 컬럼에 반영."""
+        """렌더링 완료 후 STT 텍스트, 행 색상, 파형 구간을 일괄 갱신."""
         for row, seg in enumerate(self._segments):
             item = self.list_segments.item(row, 3)
             if item is not None:
                 item.setText(seg.get("text", ""))
+            self._apply_row_color(row)
+            self._waveform.update_keep(row, seg.get("keep", True))
 
     def _populate_segments(self, segments: list):
         self._segments = [dict(seg, keep=seg.get("keep", True)) for seg in segments]
@@ -252,6 +253,7 @@ class MainWindow(QMainWindow):
         tbl = self.list_segments
         tbl.setRowCount(0)
         tbl.setColumnCount(4)
+        tbl.setHorizontalHeaderLabels(["시간", "✓", "✗", "자막"])
         tbl.setColumnWidth(0, 140)
         tbl.setColumnWidth(1, 35)
         tbl.setColumnWidth(2, 35)
@@ -375,6 +377,6 @@ class MainWindow(QMainWindow):
     def _load_settings(self) -> dict:
         s = QSettings("SNAP", "Editor")
         return {
-            "silence_threshold": float(s.value("silence_threshold", 0.5)),
+            "silence_threshold": float(s.value("silence_threshold", 0.3)),
             "whisper_model": int(s.value("whisper_model", 3)),
         }

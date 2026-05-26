@@ -24,7 +24,7 @@ class SettingsDialog(QDialog):
 
     def load_settings(self):
         settings = QSettings("SNAP", "Editor")
-        self.spin_silence_threshold.setValue(float(settings.value("silence_threshold", 0.5)))
+        self.spin_silence_threshold.setValue(float(settings.value("silence_threshold", 0.3)))
         self.combo_whisper_model.setCurrentIndex(int(settings.value("whisper_model", 3)))
 
         self.list_words.clear()
