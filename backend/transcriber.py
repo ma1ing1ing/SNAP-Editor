@@ -42,7 +42,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     result = model.transcribe(
         video_path, 
         language=None, 
-        word_timestamps=True,
+        word_timestamps=False,
         vad=False # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
     )
     
