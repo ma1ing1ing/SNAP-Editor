@@ -81,9 +81,15 @@ def _extract_amplitudes(audio_path: str, duration_ms: int, num_samples: int = 20
         amplitudes = []
         for i in range(0, len(samples) - chunk + 1, chunk):
             peak = max(abs(s) for s in samples[i : i + chunk])
-            amplitudes.append(min(1.0, peak / 32768.0))
-            if len(amplitudes) >= num_samples:
-                break
+            amplitudes.append(peak)
+            
+        if amplitudes:
+            # 전체 구간 중 가장 큰 소리(max_amp)를 찾아서 그 기준으로 비율을 맞춤 (정규화)
+            max_amp = max(amplitudes)
+            # 녹음 소리가 아예 없는 경우(1000 이하) 무한정 커지는 것을 방지
+            scale = 32768.0 if max_amp < 1000 else max_amp
+            amplitudes = [min(1.0, a / scale) for a in amplitudes]
+            
         return amplitudes
     except Exception:
         return []
