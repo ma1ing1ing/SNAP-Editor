@@ -30,7 +30,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         video_path, 
         language=None, 
         word_timestamps=True,
-        vad=False # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
+        vad=True # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
     )
     
     # stable-ts의 결과 객체에서 언어 정보 가져오기

@@ -84,7 +84,18 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
     try:
         # v=1(비디오), a=1(오디오)를 쌍으로 묶어서 순서대로 이어 붙임
         joined = ffmpeg.concat(*streams, v=1, a=1)
-        joined = ffmpeg.output(joined, output_file)
+        
+        # 🚀 [수정 포인트] 마린 님이 요청한 고화질 압축 옵션 주입!
+        # 인강 칠판 글씨가 깨지지 않게 코덱을 강제 지정하고 CRF 18(고화질) 설정을 넣었어.
+        joined = ffmpeg.output(
+            joined, 
+            output_file,
+            vcodec='libx264',    # H.264 비디오 코덱 강제 지정
+            crf=18,              # 화질 제어 마법의 숫자 (낮을수록 고화질, 18은 원본급 화질)
+            preset='fast',       # 렌더링 속도와 압축 효율의 최적 밸런스
+            acodec='aac',        # 오디오 코덱 지정
+            audio_bitrate='192k' # 소리 음질도 짱짱하게 확보
+        )
         
         # 실제 렌더링 실행
         ffmpeg.run(joined, overwrite_output=True, capture_stdout=True, capture_stderr=True)

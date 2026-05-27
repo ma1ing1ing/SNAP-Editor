@@ -1,6 +1,6 @@
 # 파일명: main.py
-from extract_audio import extract_audio
-from vad_tagger import detect_and_tag_silence
+from backend.extract_audio import extract_audio
+from backend.vad_tagger import detect_and_tag_silence
 from backend.editor import create_final_edited_audio, create_final_edited_video
 import time
 
