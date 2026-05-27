@@ -136,11 +136,11 @@ class BackendController:
         # 4. 컷편집된 영상에 자막 병합
         self._log("▶ 자막 병합 중...")
         success = add_subtitles_to_video(temp_edited, subtitle_srt, output_video, language="ko")
-        
+
         if success:
             self._progress(100)
             self._log(f"✅ 최종 영상 생성 완료: {output_video}")
-            
+
             # 5. 캐싱해두었던 원본 불용어 데이터 불러오기
             cut_points = []
             cached_ai_path = os.path.join(_DATA_DIR, "cached_ai_result.json")
@@ -148,18 +148,18 @@ class BackendController:
                 with open(cached_ai_path, "r", encoding="utf-8") as f:
                     ai_res = json.load(f)
                     cut_points = ai_res.get("cut_points", [])
-                
+
                 # 사용 완료된 캐시 파일 삭제
                 try:
                     os.remove(cached_ai_path)
                 except Exception:
                     pass
-                    
+
             # 6. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
             try:
                 if os.path.exists(temp_edited):
                     os.remove(temp_edited)
-                
+
                 # 사용자가 SRT 파일을 따로 쓸 수 있도록 최종 영상과 같은 이름으로 저장
                 if os.path.exists(subtitle_srt):
                     import shutil
@@ -167,7 +167,7 @@ class BackendController:
                     shutil.move(subtitle_srt, final_srt_path)
             except Exception:
                 pass
-                    
+
             return {
                 "final_result": output_video,
                 "cut_points": cut_points

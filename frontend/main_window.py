@@ -103,6 +103,16 @@ class MainWindow(QMainWindow):
         self.slider_timeline.setValue(position)
         self.label_time.setText(f"{format_time(position)} / {format_time(duration)}")
         self._waveform.set_position(position)
+        
+        # 재생 위치에 따라 구간 목록 동기화
+        if not getattr(self, "_is_user_scrolling", False):  # 스크롤 중 방해 방지용 (선택)
+            for i, seg in enumerate(self._segments):
+                if seg.get("start", 0) <= position <= seg.get("end", 0):
+                    if self.list_segments.currentRow() != i:
+                        self._is_auto_selecting = True
+                        self.list_segments.selectRow(i)
+                        self._is_auto_selecting = False
+                    break
 
     # ── AI 분석 ───────────────────────────────────────────────────────────────
 
@@ -359,8 +369,13 @@ class MainWindow(QMainWindow):
         self._waveform.set_selected(row)
         if row < 0 or row >= len(self._segments):
             return
+        
+        # 비디오 재생 중 자동 선택된 경우 seek 무시
+        if not getattr(self, "_is_auto_selecting", False):
+            seg = self._segments[row]
+            self._video_player.seek(seg.get('start', 0))
+            
         seg = self._segments[row]
-        self._video_player.seek(seg.get('start', 0))
         text = seg.get("text", "")
         self.text_subtitle_edit.setPlainText(text)
         self.text_subtitle_edit.setEnabled(True)
