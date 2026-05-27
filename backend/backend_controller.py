@@ -127,23 +127,58 @@ class BackendController:
         # 3. STT를 돌리지 않고, segments에 담긴 텍스트로 즉석에서 SRT 생성
         self._log("▶ 사용자 수정 자막 기반 SRT 생성 중...")
         subtitle_srt = os.path.join(_DATA_DIR, "subtitle.srt")
+        
+        # --- [추가] 컷 편집 과정에서 발생하는 ffmpeg 패딩(Drift) 보정 비율 계산 ---
+        import ffmpeg
+        try:
+            orig_probe = ffmpeg.probe(input_video)
+            orig_duration = float(orig_probe['format']['duration'])
+            
+            expected_duration = orig_duration
+            for sil in silence_segments:
+                expected_duration -= (sil['end'] - sil['start'])
+                
+            edited_probe = ffmpeg.probe(temp_edited)
+            actual_duration = float(edited_probe['format']['duration'])
+            
+            stretch_ratio = actual_duration / expected_duration if expected_duration > 0 else 1.0
+            self._log(f"▶ 싱크 미세조정: 원본 대비 렌더링 길이 비율({stretch_ratio:.5f}) 적용")
+        except Exception as e:
+            self._log(f"⚠ 영상 길이 분석 실패, 기본 비율 사용 ({e})")
+            stretch_ratio = 1.0
+        # -------------------------------------------------------------------
+
         from transcriber import format_time
         with open(subtitle_srt, "w", encoding="utf-8") as f:
-            new_current_time = 0.0
             subtitle_index = 1
-            # 자막 싱크가 약간 빠르게 나오는 현상을 방지하기 위해 0.15초(150ms) 지연 보정 적용
-            delay_offset = 0.15
+            # 자막 싱크가 약간 빠르게 나오는 현상을 방지하기 위해 지연 보정 적용
+            delay_offset = 0.0
             for seg in segments:
                 if seg.get("keep", True):
-                    duration = (seg["end"] - seg["start"]) / 1000.0
                     text = seg.get("text", "").strip()
                     if text and text != "(불용어)":
-                        start_str = format_time(new_current_time + delay_offset)
-                        end_str = format_time(new_current_time + duration + delay_offset)
+                        orig_start = seg["start"] / 1000.0
+                        orig_end = seg["end"] / 1000.0
+                        
+                        edited_start = orig_start
+                        edited_end = orig_end
+                        
+                        for sil in silence_segments:
+                            if orig_start >= sil['end']:
+                                edited_start -= (sil['end'] - sil['start'])
+                            elif orig_start > sil['start']:
+                                edited_start -= (orig_start - sil['start'])
+                                
+                            if orig_end >= sil['end']:
+                                edited_end -= (sil['end'] - sil['start'])
+                            elif orig_end > sil['start']:
+                                edited_end -= (orig_end - sil['start'])
+
+                        # 패딩으로 인해 늘어난 영상 길이에 맞춰 자막 시간도 미세하게 늘려줍니다(stretch_ratio)
+                        start_str = format_time((edited_start * stretch_ratio) + delay_offset)
+                        end_str = format_time((edited_end * stretch_ratio) + delay_offset)
                         f.write(f"{subtitle_index}\n{start_str} --> {end_str}\n{text}\n\n")
                         subtitle_index += 1
-                    new_current_time += duration
-                    
         # 4. 컷편집된 영상에 자막 병합
         self._log("▶ 자막 병합 중...")
         success = add_subtitles_to_video(temp_edited, subtitle_srt, output_video, language="ko")
