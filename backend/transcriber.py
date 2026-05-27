@@ -43,7 +43,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         video_path, 
         language=None, 
         word_timestamps=True,
-        vad=False # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
+        vad=True # 원본 영상이므로 VAD를 켜서 무음 구간을 건너뛰어야 언어 감지(nynorsk 오류) 및 환각을 방지할 수 있음
     )
     
     # 세그먼트가 너무 길게(또는 짧게) 나오는 것을 방지하기 위해 정교하게 재구성
