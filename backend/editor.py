@@ -112,6 +112,15 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
 def add_subtitles_to_video(video_path, srt_path, output_file, language='ko'):
     """편집된 영상에 SRT 자막을 소프트 자막 트랙으로 병합."""
     print(f"\n▶ [자막 병합] {srt_path} → {output_file}")
+    
+    # QuickTime 등 애플 기기 호환성을 위한 3자리 언어 코드(ISO 639-2) 매핑
+    lang_map = {
+        'ko': 'kor', 'en': 'eng', 'ja': 'jpn', 
+        'zh': 'chi', 'fr': 'fre', 'es': 'spa',
+        'de': 'ger', 'ru': 'rus', 'it': 'ita'
+    }
+    iso3_lang = lang_map.get(language, language)
+    
     try:
         video = ffmpeg.input(video_path)
         subs  = ffmpeg.input(srt_path)
@@ -124,7 +133,7 @@ def add_subtitles_to_video(video_path, srt_path, output_file, language='ko'):
                     'c:v': 'copy',
                     'c:a': 'copy',
                     'c:s': 'mov_text',
-                    'metadata:s:s:0': f'language={language}',
+                    'metadata:s:s:0': f'language={iso3_lang}',
                 }
             )
             .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)

@@ -5,6 +5,9 @@ import sys
 # 현재 모듈(backend)을 경로에 추가하여 모듈 내 함수들을 임포트
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
+# backend/Data 경로 — 실행 위치에 관계없이 이 파일 기준으로 고정
+_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Data")
+
 from backend.extract_audio import extract_audio
 from backend.editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
