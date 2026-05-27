@@ -103,6 +103,16 @@ class MainWindow(QMainWindow):
         self.slider_timeline.setValue(position)
         self.label_time.setText(f"{format_time(position)} / {format_time(duration)}")
         self._waveform.set_position(position)
+        
+        # 재생 위치에 따라 구간 목록 동기화
+        if not getattr(self, "_is_user_scrolling", False):  # 스크롤 중 방해 방지용 (선택)
+            for i, seg in enumerate(self._segments):
+                if seg.get("start", 0) <= position <= seg.get("end", 0):
+                    if self.list_segments.currentRow() != i:
+                        self._is_auto_selecting = True
+                        self.list_segments.selectRow(i)
+                        self._is_auto_selecting = False
+                    break
 
     # ── AI 분석 ───────────────────────────────────────────────────────────────
 
@@ -139,7 +149,6 @@ class MainWindow(QMainWindow):
 
     def _on_analysis_complete(self, segments: list):
         self._populate_segments(segments)
-        self.btn_render.setEnabled(True)
 
         count = len(segments)
         if self._analysis_popup:
@@ -148,16 +157,24 @@ class MainWindow(QMainWindow):
         self.label_status.setText(f"✅ {count}개 구간 감지됨 — 자막 생성 중...")
 
         self._stt_worker = STTWorker(self._video_path, self._segments, self._load_settings())
+        self._stt_worker.progress_updated.connect(self.progress_bar.setValue)
+        if self._analysis_popup:
+            self._stt_worker.progress_updated.connect(self._analysis_popup.update_progress)
         self._stt_worker.status_changed.connect(self.label_status.setText)
         if self._analysis_popup:
             self._stt_worker.status_changed.connect(self._analysis_popup.update_status)
         self._stt_worker.stt_complete.connect(self._on_stt_complete)
         self._stt_worker.error_occurred.connect(self._on_stt_error)
+        
+        # 취소 버튼 → STT 워커 중단 연결
+        if self._analysis_popup:
+            self._analysis_popup.rejected.connect(self._stt_worker.terminate)
+            
         self._stt_worker.start()
 
     def _on_stt_complete(self, updated_segments: list):
-        self._segments = updated_segments
-        self._refresh_segment_text()
+        self._populate_segments(updated_segments)
+        self.btn_render.setEnabled(True)
         self.label_status.setText(
             "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
@@ -195,6 +212,9 @@ class MainWindow(QMainWindow):
             return
 
         self.btn_render.setEnabled(False)
+        self.btn_open_file.setEnabled(False)
+        self.btn_start_process.setEnabled(False)
+        self.btn_settings.setEnabled(False)
         self._render_worker = RenderWorker(self._video_path, self._segments, self._load_settings(), output_path)
         self._render_worker.progress_updated.connect(self.progress_bar.setValue)
         self._render_worker.status_changed.connect(self.label_status.setText)
@@ -207,9 +227,11 @@ class MainWindow(QMainWindow):
         self._segments = updated_segments
         self._refresh_segment_text()
         self.btn_render.setEnabled(True)
+        self.btn_open_file.setEnabled(True)
+        self.btn_start_process.setEnabled(True)
+        self.btn_settings.setEnabled(True)
 
-        # 결과 영상 플레이어에 로드
-        self._video_path = output_path
+        # 결과 영상 플레이어에 로드 (원본 경로는 재렌더를 위해 유지)
         self.label_file_path.setText(output_path)
         self._video_player.load(output_path)
 
@@ -236,15 +258,20 @@ class MainWindow(QMainWindow):
 
     def _on_render_error(self, message: str):
         self.btn_render.setEnabled(True)
+        self.btn_open_file.setEnabled(True)
+        self.btn_start_process.setEnabled(True)
+        self.btn_settings.setEnabled(True)
         self.label_status.setText("⚠ 렌더링 실패 — 다시 시도해주세요")
         QMessageBox.critical(self, "렌더링 오류", f"{message}\n\n다시 시도해주세요.")
 
     def _refresh_segment_text(self):
-        """렌더링 완료 후 STT 텍스트를 list_segments 자막 컬럼에 반영."""
+        """렌더링 완료 후 STT 텍스트, 행 색상, 파형 구간을 일괄 갱신."""
         for row, seg in enumerate(self._segments):
             item = self.list_segments.item(row, 3)
             if item is not None:
                 item.setText(seg.get("text", ""))
+            self._apply_row_color(row)
+            self._waveform.update_keep(row, seg.get("keep", True))
 
     def _populate_segments(self, segments: list):
         self._segments = [dict(seg, keep=seg.get("keep", True)) for seg in segments]
@@ -252,6 +279,7 @@ class MainWindow(QMainWindow):
         tbl = self.list_segments
         tbl.setRowCount(0)
         tbl.setColumnCount(4)
+        tbl.setHorizontalHeaderLabels(["시간", "✓", "✗", "자막"])
         tbl.setColumnWidth(0, 140)
         tbl.setColumnWidth(1, 35)
         tbl.setColumnWidth(2, 35)
@@ -296,6 +324,21 @@ class MainWindow(QMainWindow):
         if item:
             item.setBackground(color)
 
+        btn_ok = self.list_segments.cellWidget(row, 1)
+        btn_x  = self.list_segments.cellWidget(row, 2)
+        if btn_ok:
+            btn_ok.setStyleSheet(
+                "color: #fff; background: #2e7d32; font-weight: bold; border-radius: 3px;"
+                if keep else
+                "color: #aaa; background: transparent; font-weight: normal;"
+            )
+        if btn_x:
+            btn_x.setStyleSheet(
+                "color: #fff; background: #c62828; font-weight: bold; border-radius: 3px;"
+                if not keep else
+                "color: #aaa; background: transparent; font-weight: normal;"
+            )
+
     # ── 설정 ──────────────────────────────────────────────────────────────────
 
     def _open_settings(self):
@@ -326,8 +369,13 @@ class MainWindow(QMainWindow):
         self._waveform.set_selected(row)
         if row < 0 or row >= len(self._segments):
             return
+        
+        # 비디오 재생 중 자동 선택된 경우 seek 무시
+        if not getattr(self, "_is_auto_selecting", False):
+            seg = self._segments[row]
+            self._video_player.seek(seg.get('start', 0))
+            
         seg = self._segments[row]
-        self._video_player.seek(seg.get('start', 0))
         text = seg.get("text", "")
         self.text_subtitle_edit.setPlainText(text)
         self.text_subtitle_edit.setEnabled(True)
@@ -375,6 +423,7 @@ class MainWindow(QMainWindow):
     def _load_settings(self) -> dict:
         s = QSettings("SNAP", "Editor")
         return {
-            "silence_threshold": float(s.value("silence_threshold", 0.5)),
+            "silence_threshold": float(s.value("silence_threshold", 0.3)),
             "whisper_model": int(s.value("whisper_model", 3)),
+            "stopword_mode": s.value("stopword_mode", "default")
         }

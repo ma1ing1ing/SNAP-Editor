@@ -18,14 +18,27 @@ def format_time(seconds):
     # SRT 표준 형식인 '00:00:00,000'을 강제합니다.
     return f"{hours:02}:{minutes:02}:{secs:02},{millis:03}"
 
-def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small'):
+def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle.srt", model_size='small', status_callback=None, progress_callback=None, stopword_mode="default"):
+
+    def emit_status(msg):
+        if status_callback:
+            status_callback(msg)
+
+    def emit_progress(value):
+        if progress_callback:
+            progress_callback(value)
+
+    emit_status(f"▶ STT 모델({model_size}) 로드 중...")
+    emit_progress(10)
     print(f"\n▶ [STT/자막] stable-ts 정밀 분석 시작: {video_path} (모델: {model_size})")
 
     model = ststable.load_model(model_size)
 
     kiwi = Kiwi()
 
-    # 음성 인식 및 싱크 보정 실행
+    emit_status("▶ STT 음성 인식 중... (영상의 길이에 따라 수 분이 소요될 수 있습니다)")
+    emit_progress(30)
+    # 음성 인식 및 싱크 보정 실행 (단어별 타임스탬프를 켠 후 재구성해야 정교한 분리/병합이 가능함)
     result = model.transcribe(
         video_path, 
         language=None, 
@@ -33,8 +46,19 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         vad=True # 이중 VAD 방지 (이미 편집된 영상이므로 False가 자연스러움)
     )
     
+    # 세그먼트가 너무 길게(또는 짧게) 나오는 것을 방지하기 위해 정교하게 재구성
+    result = (
+        result
+        .split_by_punctuation(['.', '。', '?', '？', '!', '！'])
+        .split_by_gap(0.8)          # 0.5에서 0.8로 늘려 더 긴 호흡으로 묶음
+        .merge_by_gap(0.3, max_words=5) # 0.2에서 0.3으로 늘려 짧은 세그먼트 병합 범위 확대
+        .split_by_length(max_chars=60, max_words=18) # 최대 글자 수 40->60, 단어 수 12->18로 늘려 문장을 더 길게 유지
+    )
+    
     # stable-ts의 결과 객체에서 언어 정보 가져오기
     detected_lang = result.language
+    emit_status(f"▶ 자막 텍스트 보정 중... (언어: {detected_lang})")
+    emit_progress(70)
     print(f"▶ 감지된 언어: {detected_lang}")
 
     # 결과 데이터를 SRT 형식으로 가공 및 한국어 문장 부호 보정
@@ -53,8 +77,10 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
                     if last_tag.startswith('EF') or text[-1] in ['다', '요', '까', '죠']:
                         text += "."
             
-            start_time = format_time(segment.start)
-            end_time = format_time(segment.end)
+            # 자막 싱크가 약간 빠르게 나오는 현상을 방지하기 위해 0.15초(150ms) 지연 보정 적용
+            delay_offset = 0.15
+            start_time = format_time(segment.start + delay_offset)
+            end_time = format_time(segment.end + delay_offset)
             
             srt_file.write(f"{i}\n{start_time} --> {end_time}\n{text}\n\n")
 
@@ -71,7 +97,7 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
     for segment in result.segments:
         words_list = []
 
-        if hasattr(segment, "words"):
+        if hasattr(segment, "words") and segment.words:
             for w in segment.words:
                 words_list.append({
                     "word": w.word,
@@ -87,13 +113,15 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         })
 
     print("▶ AI 파이프라인(불용어 탐지) 실행 중...")
+    emit_status("▶ AI 불용어 탐지 파이프라인 실행 중...")
+    emit_progress(85)
     ai_result = {}
     try:
         # 새로 업데이트된 AI/main.py의 run_ai_pipeline 시그니처에 맞게 호출 수정
         ai_result = run_ai_pipeline(
             video_path=video_path,
             params={
-                "mode": "default",
+                "mode": stopword_mode,
                 "stt_result": stt_result
             }
         )
@@ -101,6 +129,13 @@ def transcribe_video_to_srt(video_path, output_srt_path="./backend/Data/subtitle
         # 결과를 JSON으로 저장
         ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
         with open(ai_output_path, "w", encoding="utf-8") as f:
+            json.dump(ai_result, f, ensure_ascii=False, indent=2)
+            
+        # 🌟 원본 타임라인 기반 불용어 데이터를 RenderWorker에서 쓸 수 있도록 캐싱
+        backend_data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "Data"))
+        os.makedirs(backend_data_dir, exist_ok=True)
+        cached_ai_path = os.path.join(backend_data_dir, "cached_ai_result.json")
+        with open(cached_ai_path, "w", encoding="utf-8") as f:
             json.dump(ai_result, f, ensure_ascii=False, indent=2)
             
         print(f"✅ 불용어 탐지 완료: 총 {len(ai_result.get('cut_points', []))}개의 불용어 구간 발견")

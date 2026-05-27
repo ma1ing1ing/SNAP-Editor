@@ -24,8 +24,16 @@ class SettingsDialog(QDialog):
 
     def load_settings(self):
         settings = QSettings("SNAP", "Editor")
-        self.spin_silence_threshold.setValue(float(settings.value("silence_threshold", 0.5)))
+        self.spin_silence_threshold.setValue(float(settings.value("silence_threshold", 0.3)))
         self.combo_whisper_model.setCurrentIndex(int(settings.value("whisper_model", 3)))
+        
+        mode = settings.value("stopword_mode", "default")
+        if mode == "light":
+            self.combo_stopword_mode.setCurrentIndex(0)
+        elif mode == "aggressive":
+            self.combo_stopword_mode.setCurrentIndex(2)
+        else:
+            self.combo_stopword_mode.setCurrentIndex(1)
 
         self.list_words.clear()
         saved = settings.value(_SETTINGS_KEY_WORDS, "")
@@ -36,6 +44,14 @@ class SettingsDialog(QDialog):
         settings = QSettings("SNAP", "Editor")
         settings.setValue("silence_threshold", self.spin_silence_threshold.value())
         settings.setValue("whisper_model", self.combo_whisper_model.currentIndex())
+        
+        mode_idx = self.combo_stopword_mode.currentIndex()
+        if mode_idx == 0:
+            settings.setValue("stopword_mode", "light")
+        elif mode_idx == 2:
+            settings.setValue("stopword_mode", "aggressive")
+        else:
+            settings.setValue("stopword_mode", "default")
 
         words = [self.list_words.item(i).text() for i in range(self.list_words.count())]
         settings.setValue(_SETTINGS_KEY_WORDS, ",".join(words))

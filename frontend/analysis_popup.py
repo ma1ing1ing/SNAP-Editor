@@ -52,6 +52,10 @@ class AnalysisPopup(QDialog):
 
     def mark_step1_complete(self, segment_count: int):
         """VAD 완료 — 자막 생성 단계로 전환."""
+        self._timer.stop()
+        self._timer.timeout.disconnect(self._tick_elapsed)
+        self._step1_time = int(time.time() - self._start_time)
+
         self.setWindowTitle("자막 생성 중")
         self.label_title.setText("1. 구간 분류 완료  →  2. 자막 생성 중...")
         self.progress_bar.setValue(50)
@@ -60,6 +64,15 @@ class AnalysisPopup(QDialog):
         self.label_elapsed.setText(f"{segment_count}개")
         self.label_remaining_title.setText("현재 단계")
         self.label_remaining.setText("자막 생성 중...")
+
+        self._stt_start_time = time.time()
+        self._timer.timeout.connect(self._tick_stt_elapsed)
+        self._timer.start(1000)
+
+    def _tick_stt_elapsed(self):
+        elapsed = int(time.time() - self._stt_start_time)
+        m, s = divmod(elapsed, 60)
+        self.label_remaining.setText(f"자막 생성 중... {m:02d}:{s:02d}")
 
     def mark_complete(self, segment_count: int):
         self._timer.stop()
