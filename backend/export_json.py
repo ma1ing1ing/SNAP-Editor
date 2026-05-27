@@ -20,7 +20,7 @@ def detect_silence(audio_path, min_silence_seconds=1.0):
     speech_timestamps = get_speech_timestamps(
         audio_tensor, model,
         sampling_rate=16000,
-        threshold=0.3,
+        threshold=0.5,
         min_silence_duration_ms=int(min_silence_seconds * 1000),
     )
     
