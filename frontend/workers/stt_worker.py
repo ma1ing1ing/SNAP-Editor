@@ -97,3 +97,4 @@ class STTWorker(QThread):
 
         except Exception as e:
             self.error_occurred.emit(str(e))
+            

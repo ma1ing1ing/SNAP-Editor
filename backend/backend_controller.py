@@ -5,11 +5,8 @@ import sys
 # 현재 모듈(backend)을 경로에 추가하여 모듈 내 함수들을 임포트
 sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 
-# backend/Data 경로 — 실행 위치에 관계없이 이 파일 기준으로 고정
-_DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Data")
-
-from extract_audio import extract_audio
-from editor import create_final_edited_video, add_subtitles_to_video
+from backend.extract_audio import extract_audio
+from backend.editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
 from export_json import detect_silence
 
@@ -35,45 +32,56 @@ class BackendController:
         if self.progress_callback:
             self.progress_callback(value)
 
+    # 🚀 [수정 포인트 2] 프론트엔드가 호출하는 파라미터 이름(threshold)으로 완벽하게 맞춤!
     def run_step1_extract_and_vad(self, input_video, temp_audio, output_json,
-                                   threshold=0.3):
+                                  threshold=0.3, min_silence_ms=500, min_speech_ms=250):
         """
         Step 1: 영상 불러오기, 오디오 추출, VAD 분석, JSON 내보내기
         """
         self._log("▶ [Step 1] 오디오 추출 및 VAD 분석 시작...")
         self._progress(0)
-
+        
         # 1. 오디오 추출
         self._log(f"오디오 추출 중...: {input_video}")
         self._progress(10)
-
+        
         success = extract_audio(input_video, temp_audio)
         if not success:
             self._log("❌ 오디오 추출 실패")
             return None
-
+        
         self._progress(40)
-
-        # 2. VAD 분석 (무음 구간 탐지)
-        self._log(f"AI 기반 VAD 무음 구간 분석 중... (threshold={threshold})")
-        _, vad_results = detect_silence(temp_audio, min_silence_seconds=threshold)
-        silence_segments = vad_results.get("silence_segments", []) if vad_results else []
-
+        
+        # 2. VAD 분석 (무음 구간 탐지) 및 상세 데이터 추출
+        self._log("AI 기반 VAD 무음 구간 분석 및 상세 데이터 추출 중...")
+        
+        # 명세서에 맞게 무음 튜플 리스트(silence_list)와 상세 JSON 데이터(detailed_json_data)를 통째로 받아옴
+        silence_list, detailed_json_data = detect_silence(temp_audio)
+        
         self._progress(80)
-
+        
         # 3. 분석 결과를 JSON 파일로 저장
         self._log("상세 분석 결과 JSON 저장 중...")
+        
+        # 만약 detailed_json_data가 이미 문자열이라면 그대로 쓰고, 딕셔너리면 dump로 저장하는 안전장치
         with open(output_json, 'w', encoding='utf-8') as f:
-            json.dump(silence_segments, f, indent=4, ensure_ascii=False)
-
+            if isinstance(detailed_json_data, str):
+                f.write(detailed_json_data)
+            else:
+                json.dump(detailed_json_data, f, indent=4, ensure_ascii=False)
+            
         self._progress(100)
         self._log(f"✅ [Step 1] 완료. 상세 JSON 파일 저장됨: {output_json}")
-
+        
+        # 🚀 [수정 포인트 3 - 멘토의 무적 방어 코드] 
+        # 튜플 (0.0, 0.32)를 프론트엔드가 정확히 원하는 {"start": 0.0, "end": 0.32} 형태로 강제 변환!
+        formatted_segments = [{"start": s, "end": e} for s, e in silence_list]
+        
         # 다음 단계로 넘길 상태(State) 데이터 리턴
         return {
             "temp_audio": temp_audio,
             "json_path": output_json,
-            "silence_list": silence_segments
+            "silence_list": formatted_segments 
         }
     
     def run_step2_stt(self, video_path, srt_path, whisper_model, stopword_mode="default"):
