@@ -74,12 +74,12 @@ class MainWindow(QMainWindow):
         btn_merge = QPushButton("구간 병합")
         btn_merge.setEnabled(False)
         btn_merge.setFixedHeight(22)
-        btn_merge.setStyleSheet(small_btn_style.format(fg="#1565c0"))
+        btn_merge.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
         btn_reset = QPushButton("Reset")
         btn_reset.setEnabled(False)
         btn_reset.setFixedHeight(22)
-        btn_reset.setStyleSheet(small_btn_style.format(fg="#b71c1c"))
+        btn_reset.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
         # 자막 편집 헤더: [선택한 구간 편집 ── Reset]
         frame_layout = self.frame_subtitle_editor.layout()
