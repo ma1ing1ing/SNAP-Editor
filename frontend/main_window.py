@@ -37,6 +37,8 @@ class MainWindow(QMainWindow):
         self._btn_merge = self._setup_merge_button()
 
         self._connect_signals()
+        self._fix_layout()
+        self._setup_title_bar()
 
     def _setup_time_editor(self):
         layout = self.frame_subtitle_editor.layout()
@@ -55,13 +57,20 @@ class MainWindow(QMainWindow):
         tilde = QLabel("~")
         tilde.setStyleSheet("color: #888;")
 
+        start_edit.setFixedWidth(150)
+        end_edit.setFixedWidth(150)
+
         row = QHBoxLayout()
+        row.setSpacing(6)
         row.addWidget(start_edit)
         row.addWidget(tilde)
         row.addWidget(end_edit)
+        row.addStretch()
 
         layout.insertWidget(1, header)
         layout.insertLayout(2, row)
+
+        self.text_subtitle_edit.setMaximumHeight(90)
 
         return start_edit, end_edit
 
@@ -74,41 +83,182 @@ class MainWindow(QMainWindow):
         btn_merge = QPushButton("구간 병합")
         btn_merge.setEnabled(False)
         btn_merge.setFixedHeight(22)
-        btn_merge.setStyleSheet(small_btn_style.format(fg="#1565c0"))
+        btn_merge.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
         btn_reset = QPushButton("Reset")
         btn_reset.setEnabled(False)
         btn_reset.setFixedHeight(22)
-        btn_reset.setStyleSheet(small_btn_style.format(fg="#b71c1c"))
+        btn_reset.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
-        # 자막 편집 헤더: [선택한 구간 편집 ── Reset]
-        frame_layout = self.frame_subtitle_editor.layout()
-        title_label = self.label_subtitle_editor_title
-        title_label.setText("선택한 구간 편집")
-        frame_layout.removeWidget(title_label)
-
-        subtitle_header = QHBoxLayout()
-        subtitle_header.setContentsMargins(0, 0, 0, 0)
-        subtitle_header.addWidget(title_label)
-        subtitle_header.addStretch()
-        subtitle_header.addWidget(btn_reset)
-        frame_layout.insertLayout(0, subtitle_header)
-
-        # 구간 목록 헤더: [편집 구간 목록 ── 구간 병합]
-        from PyQt6.QtWidgets import QVBoxLayout
+        from PyQt6.QtWidgets import QVBoxLayout, QFrame, QSizePolicy
         right_layout = self.findChild(QVBoxLayout, "layout_right")
+
+        # ── 구간 목록: seg_container (헤더 + 리스트) ──
         seg_title = self.label_segment_title
         right_layout.removeWidget(seg_title)
+        seg_title.setParent(None)
+        right_layout.removeWidget(self.list_segments)
 
-        seg_header = QHBoxLayout()
-        seg_header.setContentsMargins(0, 0, 0, 0)
-        seg_header.addWidget(seg_title)
-        seg_header.addStretch()
-        seg_header.addWidget(btn_merge)
-        right_layout.insertLayout(0, seg_header)
+        seg_title.setStyleSheet("font-weight: bold; font-size: 12px;")
+        seg_header_layout = QHBoxLayout()
+        seg_header_layout.setContentsMargins(8, 5, 8, 5)
+        seg_header_layout.addWidget(seg_title)
+        seg_header_layout.addStretch()
+        seg_header_layout.addWidget(btn_merge)
+
+        header_frame = QFrame()
+        header_frame.setObjectName("seg_header_frame")
+        header_frame.setLayout(seg_header_layout)
+        header_frame.setStyleSheet(
+            "#seg_header_frame { background-color: #f5f5f7; border-bottom: 1px solid #d1d1d6;"
+            " border-top-left-radius: 6px; border-top-right-radius: 6px; }"
+        )
+
+        self.list_segments.setFrameShape(QFrame.Shape.NoFrame)
+
+        self._seg_container = QFrame()
+        self._seg_container.setObjectName("seg_container")
+        self._seg_container.setStyleSheet(
+            "#seg_container { border: 1px solid #d1d1d6; border-radius: 6px; }"
+        )
+        self._seg_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        container_layout = QVBoxLayout()
+        container_layout.setContentsMargins(0, 0, 0, 0)
+        container_layout.setSpacing(0)
+        container_layout.addWidget(header_frame)
+        container_layout.addWidget(self.list_segments)
+        self._seg_container.setLayout(container_layout)
+
+        right_layout.insertWidget(0, self._seg_container)
+
+        # ── 자막 편집: subtitle_container (헤더 + content) — seg_container와 동일한 구조 ──
+        title_label = self.label_subtitle_editor_title
+        title_label.setText("선택한 구간 편집")
+        title_label.setStyleSheet("font-weight: bold; font-size: 12px;")
+        self.frame_subtitle_editor.layout().removeWidget(title_label)
+        title_label.setParent(None)
+        self.btn_subtitle_confirm.setParent(None)
+
+        subtitle_header_layout = QHBoxLayout()
+        subtitle_header_layout.setContentsMargins(8, 5, 8, 5)
+        subtitle_header_layout.addWidget(title_label)
+        subtitle_header_layout.addStretch()
+        subtitle_header_layout.addWidget(btn_reset)
+        subtitle_header_layout.addWidget(self.btn_subtitle_confirm)
+
+        subtitle_header_frame = QFrame()
+        subtitle_header_frame.setObjectName("subtitle_header_frame")
+        subtitle_header_frame.setLayout(subtitle_header_layout)
+        subtitle_header_frame.setStyleSheet(
+            "#subtitle_header_frame { background-color: #f5f5f7; border-bottom: 1px solid #d1d1d6;"
+            " border-top-left-radius: 6px; border-top-right-radius: 6px; }"
+        )
+
+        # frame_subtitle_editor를 content area로 재활용: 자체 스타일·크기 제약 제거
+        right_layout.removeWidget(self.frame_subtitle_editor)
+        self.frame_subtitle_editor.setFrameShape(QFrame.Shape.NoFrame)
+        self.frame_subtitle_editor.setStyleSheet("")
+        self.frame_subtitle_editor.setMinimumHeight(0)
+        self.frame_subtitle_editor.setMaximumHeight(16777215)
+        content_layout = self.frame_subtitle_editor.layout()
+        content_layout.setContentsMargins(8, 6, 8, 6)
+        content_layout.setSpacing(2)
+        # btn_subtitle_confirm 제거 후 빈 채로 남은 layout_subtitle_edit_buttons 제거
+        content_layout.removeItem(self.layout_subtitle_edit_buttons)
+        # 남은 여백을 하단으로 밀기
+        from PyQt6.QtWidgets import QSpacerItem, QSizePolicy as SP
+        content_layout.addSpacerItem(QSpacerItem(0, 0, SP.Policy.Minimum, SP.Policy.Expanding))
+
+        self._subtitle_container = QFrame()
+        self._subtitle_container.setObjectName("subtitle_container")
+        self._subtitle_container.setStyleSheet(
+            "#subtitle_container { border: 1px solid #d1d1d6; border-radius: 6px; }"
+        )
+        self._subtitle_container.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        subtitle_outer_layout = QVBoxLayout()
+        subtitle_outer_layout.setContentsMargins(0, 0, 0, 0)
+        subtitle_outer_layout.setSpacing(0)
+        subtitle_outer_layout.addWidget(subtitle_header_frame)
+        subtitle_outer_layout.addWidget(self.frame_subtitle_editor)
+        self._subtitle_container.setLayout(subtitle_outer_layout)
+
+        right_layout.insertWidget(1, self._subtitle_container)
 
         self._btn_reset = btn_reset
         return btn_merge
+
+    def eventFilter(self, obj, event):
+        from PyQt6.QtCore import QEvent
+        if obj in (self.video_frame, self._video_player.video_widget) and event.type() == QEvent.Type.Resize:
+            self._apply_video_mask()
+        return super().eventFilter(obj, event)
+
+    def _apply_video_mask(self):
+        from PyQt6.QtGui import QBitmap, QPainter
+        from PyQt6.QtCore import Qt
+        for widget in (self.video_frame, self._video_player.video_widget):
+            bmp = QBitmap(widget.size())
+            bmp.fill(Qt.GlobalColor.color0)
+            p = QPainter(bmp)
+            p.setBrush(Qt.GlobalColor.color1)
+            p.setPen(Qt.PenStyle.NoPen)
+            p.drawRoundedRect(widget.rect(), 10, 10)
+            p.end()
+            widget.setMask(bmp)
+
+    def _setup_title_bar(self):
+        from PyQt6.QtWidgets import QVBoxLayout, QFrame, QSizePolicy
+        from PyQt6.QtGui import QPixmap, QFont
+        from PyQt6.QtCore import Qt
+
+        text_label = QLabel("SNAP")
+        font = QFont()
+        font.setPointSize(24)
+        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4)
+        font.setBold(True)
+        text_label.setFont(font)
+        text_label.setStyleSheet("color: white;")
+
+        center_layout = QHBoxLayout()
+        center_layout.setSpacing(8)
+        center_layout.addWidget(text_label)
+
+        bar_layout = QHBoxLayout()
+        bar_layout.addLayout(center_layout)
+        bar_layout.addStretch()
+        bar_layout.setContentsMargins(12, 4, 12, 4)
+
+        bar = QFrame()
+        bar.setStyleSheet("background-color: #1c1c1e; border-top-left-radius: 12px; border-top-right-radius: 12px;")
+        bar.setLayout(bar_layout)
+        bar.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Fixed)
+
+        main_layout = self.findChild(QVBoxLayout, "verticalLayout_main")
+        main_layout.insertWidget(0, bar)
+
+    def _fix_layout(self):
+        from PyQt6.QtWidgets import QVBoxLayout
+
+        # 우측 패널 비율: seg_container(1) : subtitle_container(fixed)
+        right_layout = self.findChild(QVBoxLayout, "layout_right")
+        seg_idx = right_layout.indexOf(self._seg_container)
+        right_layout.setStretch(seg_idx, 1)
+
+        # 파형 190px, 편집 패널 220px 고정
+        self.timeline_frame.setFixedHeight(190)
+        self._subtitle_container.setFixedHeight(220)
+
+        # 바깥 여백: 좌12 상8 우12 하12
+        main_layout = self.findChild(QVBoxLayout, "verticalLayout_main")
+        main_layout.setContentsMargins(12, 8, 12, 12)
+
+        # 영상/파형 박스 라운딩 제거
+        self.video_frame.setStyleSheet("QFrame { border-radius: 0px; background-color: #000; }")
+        self.timeline_frame.setStyleSheet("QFrame { border-radius: 0px; }")
+        self.video_frame.installEventFilter(self)
+        self._video_player.video_widget.installEventFilter(self)
 
     def _setup_waveform(self) -> WaveformWidget:
         waveform = WaveformWidget()

@@ -64,3 +64,7 @@ class VideoPlayer(QObject):
 
     def set_seeking(self, is_seeking: bool):
         self._is_seeking = is_seeking
+
+    @property
+    def video_widget(self):
+        return self._video_widget

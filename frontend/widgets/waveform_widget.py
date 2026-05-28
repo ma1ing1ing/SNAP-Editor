@@ -1,7 +1,6 @@
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import QPainter, QColor, QPen, QPolygon
-from PyQt6.QtCore import QPoint
+from PyQt6.QtCore import Qt, QPoint
+from PyQt6.QtGui import QPainter, QColor, QPen, QPolygon, QPainterPath
 
 
 class WaveformWidget(QWidget):
@@ -61,6 +60,7 @@ class WaveformWidget(QWidget):
 
     def paintEvent(self, event):
         p = QPainter(self)
+        p.setRenderHint(QPainter.RenderHint.Antialiasing)
         w = self.width()
         h = self.height()
 
