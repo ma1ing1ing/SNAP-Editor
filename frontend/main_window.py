@@ -1,9 +1,9 @@
 import os
 from typing import Optional
-from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushButton, QVBoxLayout, QMessageBox
+from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushButton, QVBoxLayout, QMessageBox, QTimeEdit, QHBoxLayout, QLabel, QAbstractItemView
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PyQt6.uic import loadUi
-from PyQt6.QtCore import QSettings
+from PyQt6.QtCore import QSettings, QTime
 
 from settings_dialog import SettingsDialog
 from analysis_popup import AnalysisPopup
@@ -32,8 +32,60 @@ class MainWindow(QMainWindow):
 
         self._video_player = VideoPlayer(self.video_frame)
         self._waveform = self._setup_waveform()
+        self._time_edit_start, self._time_edit_end = self._setup_time_editor()
+        self._btn_merge = self._setup_merge_button()
 
         self._connect_signals()
+
+    def _setup_time_editor(self):
+        layout = self.frame_subtitle_editor.layout()
+
+        header = QLabel("구간 시간")
+        header.setStyleSheet("font-weight: bold; color: #555; font-size: 11px;")
+
+        start_edit = QTimeEdit()
+        start_edit.setDisplayFormat("mm:ss.zzz")
+        start_edit.setEnabled(False)
+
+        end_edit = QTimeEdit()
+        end_edit.setDisplayFormat("mm:ss.zzz")
+        end_edit.setEnabled(False)
+
+        tilde = QLabel("~")
+        tilde.setStyleSheet("color: #888;")
+
+        row = QHBoxLayout()
+        row.addWidget(start_edit)
+        row.addWidget(tilde)
+        row.addWidget(end_edit)
+
+        layout.insertWidget(1, header)
+        layout.insertLayout(2, row)
+
+        return start_edit, end_edit
+
+    def _setup_merge_button(self) -> QPushButton:
+        btn = QPushButton("구간 병합")
+        btn.setEnabled(False)
+        btn.setFixedHeight(22)
+        btn.setStyleSheet(
+            "QPushButton { color: #1565c0; font-size: 11px; border: 1px solid #1565c0; border-radius: 3px; padding: 0 6px; }"
+            "QPushButton:disabled { color: #aaa; border-color: #ccc; }"
+        )
+
+        # label_subtitle_editor_title을 [label ── 병합버튼] 행으로 교체
+        frame_layout = self.frame_subtitle_editor.layout()
+        title_label = self.label_subtitle_editor_title
+        frame_layout.removeWidget(title_label)
+
+        header_row = QHBoxLayout()
+        header_row.setContentsMargins(0, 0, 0, 0)
+        header_row.addWidget(title_label)
+        header_row.addStretch()
+        header_row.addWidget(btn)
+        frame_layout.insertLayout(0, header_row)
+
+        return btn
 
     def _setup_waveform(self) -> WaveformWidget:
         waveform = WaveformWidget()
@@ -59,10 +111,15 @@ class MainWindow(QMainWindow):
         self._video_player.position_changed.connect(self._on_position_changed)
 
         # 구간 목록 선택 → waveform 하이라이트 + 자막 표시
+        self.list_segments.setSelectionMode(QAbstractItemView.SelectionMode.ExtendedSelection)
         self.list_segments.currentCellChanged.connect(self._on_segment_selected)
+        self.list_segments.itemSelectionChanged.connect(self._on_selection_changed)
 
         # 자막 수정 확인
         self.btn_subtitle_confirm.clicked.connect(self._on_subtitle_confirm)
+
+        # 구간 병합
+        self._btn_merge.clicked.connect(self._merge_segments)
 
         # AI
         self.btn_start_process.clicked.connect(self._start_analysis)
@@ -365,21 +422,42 @@ class MainWindow(QMainWindow):
 
     # ── 구간 선택 + 자막 ──────────────────────────────────────────────────────
 
+    def _get_selected_rows(self) -> list[int]:
+        return sorted({idx.row() for idx in self.list_segments.selectedIndexes()})
+
+    def _on_selection_changed(self):
+        rows = self._get_selected_rows()
+        self._btn_merge.setEnabled(len(rows) >= 2)
+
     def _on_segment_selected(self, row: int, *_):
         self._waveform.set_selected(row)
         if row < 0 or row >= len(self._segments):
             return
-        
+
+        # 다중 선택 중이면 편집 패널 비활성화
+        if len(self._get_selected_rows()) > 1:
+            self.text_subtitle_edit.setEnabled(False)
+            self.btn_subtitle_confirm.setEnabled(False)
+            self._time_edit_start.setEnabled(False)
+            self._time_edit_end.setEnabled(False)
+            return
+
         # 비디오 재생 중 자동 선택된 경우 seek 무시
         if not getattr(self, "_is_auto_selecting", False):
             seg = self._segments[row]
             self._video_player.seek(seg.get('start', 0))
-            
+
         seg = self._segments[row]
         text = seg.get("text", "")
         self.text_subtitle_edit.setPlainText(text)
         self.text_subtitle_edit.setEnabled(True)
         self.btn_subtitle_confirm.setEnabled(True)
+
+        self._time_edit_start.setTime(_ms_to_qtime(seg.get("start", 0)))
+        self._time_edit_end.setTime(_ms_to_qtime(seg.get("end", 0)))
+        self._time_edit_start.setEnabled(True)
+        self._time_edit_end.setEnabled(True)
+
         self._highlight_words()
 
     def _on_subtitle_confirm(self):
@@ -392,6 +470,69 @@ class MainWindow(QMainWindow):
             item = self.list_segments.item(row, 3)
             if item is not None:
                 item.setText(new_text)
+
+            new_start = _qtime_to_ms(self._time_edit_start.time())
+            new_end   = _qtime_to_ms(self._time_edit_end.time())
+            self._apply_time_edit(row, new_start, new_end)
+
+    def _merge_segments(self):
+        rows = self._get_selected_rows()
+        if len(rows) < 2:
+            return
+
+        if rows != list(range(rows[0], rows[-1] + 1)):
+            QMessageBox.warning(self, "병합 오류", "연속된 구간만 병합할 수 있습니다.")
+            return
+
+        merged = {
+            "start": self._segments[rows[0]]["start"],
+            "end":   self._segments[rows[-1]]["end"],
+            "text":  " ".join(
+                self._segments[r].get("text", "").strip()
+                for r in rows
+                if self._segments[r].get("text", "").strip()
+            ),
+            "keep": True,
+        }
+
+        del self._segments[rows[0]: rows[-1] + 1]
+        self._segments.insert(rows[0], merged)
+
+        self._populate_segments(self._segments)
+        self.list_segments.selectRow(rows[0])
+
+    def _apply_time_edit(self, row: int, new_start: int, new_end: int):
+        seg = self._segments[row]
+
+        if new_start >= new_end:
+            QMessageBox.warning(self, "시간 오류", "시작 시간이 종료 시간보다 크거나 같습니다.")
+            return
+        if row > 0 and new_start <= self._segments[row - 1]["start"]:
+            QMessageBox.warning(self, "시간 오류", "이전 구간을 소멸시킬 수 없습니다.")
+            return
+        if row < len(self._segments) - 1 and new_end >= self._segments[row + 1]["end"]:
+            QMessageBox.warning(self, "시간 오류", "다음 구간을 소멸시킬 수 없습니다.")
+            return
+
+        if row > 0:
+            self._segments[row - 1]["end"] = new_start
+            self._update_table_time(row - 1)
+        if row < len(self._segments) - 1:
+            self._segments[row + 1]["start"] = new_end
+            self._update_table_time(row + 1)
+
+        seg["start"] = new_start
+        seg["end"]   = new_end
+        self._update_table_time(row)
+
+        duration_ms = max(s["end"] for s in self._segments)
+        self._waveform.set_segments(self._segments, duration_ms)
+
+    def _update_table_time(self, row: int):
+        seg = self._segments[row]
+        item = self.list_segments.item(row, 0)
+        if item:
+            item.setText(f"{format_time(seg['start'])} ~ {format_time(seg['end'])}")
 
     def _highlight_words(self):
         words = self._load_highlight_words()
@@ -427,3 +568,11 @@ class MainWindow(QMainWindow):
             "whisper_model": int(s.value("whisper_model", 3)),
             "stopword_mode": s.value("stopword_mode", "default")
         }
+
+
+def _ms_to_qtime(ms: int) -> QTime:
+    return QTime(0, ms // 60000, (ms % 60000) // 1000, ms % 1000)
+
+
+def _qtime_to_ms(t: QTime) -> int:
+    return t.minute() * 60000 + t.second() * 1000 + t.msec()
