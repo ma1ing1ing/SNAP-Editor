@@ -6,7 +6,8 @@ from PyQt6.QtWidgets import QVBoxLayout
 
 class VideoPlayer(QObject):
 
-    position_changed = pyqtSignal(int, int)  # (현재 위치 ms, 전체 길이 ms)
+    position_changed = pyqtSignal(int, int)   # (현재 위치 ms, 전체 길이 ms)
+    playing_changed  = pyqtSignal(bool)        # True=재생 중, False=정지/일시정지
 
     def __init__(self, video_frame):
         super().__init__()
@@ -40,12 +41,19 @@ class VideoPlayer(QObject):
         if state == QMediaPlayer.PlaybackState.PlayingState and self._preview_on_load:
             self._preview_on_load = False
             self._player.pause()
+        self.playing_changed.emit(state == QMediaPlayer.PlaybackState.PlayingState)
 
     def play(self):
         self._player.play()
 
     def pause(self):
         self._player.pause()
+
+    def toggle(self):
+        if self._player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
+            self._player.pause()
+        else:
+            self._player.play()
 
     def seek(self, position: int):
         self._player.setPosition(position)
