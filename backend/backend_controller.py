@@ -59,7 +59,11 @@ class BackendController:
         self._log("AI 기반 VAD 무음 구간 분석 및 상세 데이터 추출 중...")
         
         # 명세서에 맞게 무음 튜플 리스트(silence_list)와 상세 JSON 데이터(detailed_json_data)를 통째로 받아옴
-        silence_list, detailed_json_data = detect_silence(temp_audio)
+        silence_list, detailed_json_data = detect_silence(
+            temp_audio,
+            progress_callback=self._progress,
+            log_callback=self._log,
+        )
         
         self._progress(80)
         
