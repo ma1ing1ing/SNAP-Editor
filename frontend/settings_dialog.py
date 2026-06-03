@@ -1,7 +1,7 @@
-import os
 from PyQt6.QtWidgets import QDialog
 from PyQt6.QtCore import QSettings
 from PyQt6.uic import loadUi
+from utils.resource_path import resource_path
 
 _SETTINGS_KEY_WORDS = "highlight_words"
 
@@ -11,8 +11,7 @@ class SettingsDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "settings_dialog.ui")
-        loadUi(ui_path, self)
+        loadUi(resource_path("settings_dialog.ui"), self)
 
         self.btn_cancel.clicked.connect(self.reject)
         self.btn_save_settings.clicked.connect(self.save_settings)

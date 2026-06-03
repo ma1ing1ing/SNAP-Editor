@@ -80,7 +80,7 @@ class BackendController:
                 json.dump(detailed_json_data, f, indent=4, ensure_ascii=False)
             
         self._progress(100)
-        self._log(f"✅ [Step 1] 완료. 상세 JSON 파일 저장됨: {output_json}")
+        self._log(f"구간 분석이 완료되었습니다. 상세 결과 저장됨: {output_json}")
         
         # 🚀 [수정 포인트 3 - 멘토의 무적 방어 코드] 
         # 튜플 (0.0, 0.32)를 프론트엔드가 정확히 원하는 {"start": 0.0, "end": 0.32} 형태로 강제 변환!
@@ -97,7 +97,7 @@ class BackendController:
         """
         Step 2: STTWorker에서 호출하는 통합 STT 메서드
         """
-        self._log(f"▶ STT 모델({whisper_model}) 로드 중...")
+        self._log("자막 생성을 준비하는 중...")
         self._progress(0)
 
         from transcriber import transcribe_video_to_srt
@@ -189,7 +189,7 @@ class BackendController:
 
         if success:
             self._progress(100)
-            self._log(f"✅ 최종 영상 생성 완료: {output_video}")
+            self._log(f"최종 영상 생성 완료: {output_video}")
 
             # 5. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
             try:
@@ -210,4 +210,3 @@ class BackendController:
         else:
             self._log("❌ 자막 병합 실패")
             return None
-

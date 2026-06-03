@@ -323,7 +323,7 @@
       <item>
        <widget class="QPushButton" name="btn_start_process">
         <property name="text">
-         <string>AI 분석 시작</string>
+         <string>편집 시작</string>
         </property>
        </widget>
       </item>

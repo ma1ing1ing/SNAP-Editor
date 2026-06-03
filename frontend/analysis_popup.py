@@ -1,8 +1,8 @@
-import os
 import time
 from PyQt6.QtWidgets import QDialog
 from PyQt6.QtCore import QTimer
 from PyQt6.uic import loadUi
+from utils.resource_path import resource_path
 
 
 class AnalysisPopup(QDialog):
@@ -14,8 +14,7 @@ class AnalysisPopup(QDialog):
 
     def __init__(self, parent=None):
         super().__init__(parent)
-        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "analysis_popup.ui")
-        loadUi(ui_path, self)
+        loadUi(resource_path("analysis_popup.ui"), self)
 
         self._start_time = time.time()
         self._cancelled = False
@@ -25,6 +24,7 @@ class AnalysisPopup(QDialog):
         self._timer.start(1000)
 
         self.setWindowTitle("AI 분석 중")
+        self.label_title.setWordWrap(True)
         self.label_title.setText("AI 분석 중입니다...")
         self.btn_cancel.setText("취소")
         self.btn_cancel.clicked.connect(self._on_cancel)
@@ -77,7 +77,7 @@ class AnalysisPopup(QDialog):
     def mark_complete(self, segment_count: int):
         self._timer.stop()
         self.setWindowTitle("분석 완료")
-        self.label_title.setText("✅  분석 및 자막 생성이 완료되었습니다")
+        self.label_title.setText("분석 및 자막 생성이 완료되었습니다")
         self.progress_bar.setValue(100)
 
         self.label_elapsed_title.setText("감지된 구간")

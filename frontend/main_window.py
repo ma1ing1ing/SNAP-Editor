@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushBut
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PyQt6.uic import loadUi
 from PyQt6.QtCore import QSettings, QTime
+from utils.resource_path import resource_path
 
 from settings_dialog import SettingsDialog
 from analysis_popup import AnalysisPopup
@@ -21,8 +22,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_window.ui")
-        loadUi(ui_path, self)
+        loadUi(resource_path("main_window.ui"), self)
 
         self._video_path = None
         self._ai_worker = None
@@ -87,6 +87,11 @@ class MainWindow(QMainWindow):
         btn_merge.setFixedHeight(22)
         btn_merge.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
+        btn_add = QPushButton("+ 구간 추가")
+        btn_add.setEnabled(False)
+        btn_add.setFixedHeight(22)
+        btn_add.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
+
         btn_reset = QPushButton("Reset")
         btn_reset.setEnabled(False)
         btn_reset.setFixedHeight(22)
@@ -106,6 +111,7 @@ class MainWindow(QMainWindow):
         seg_header_layout.setContentsMargins(8, 5, 8, 5)
         seg_header_layout.addWidget(seg_title)
         seg_header_layout.addStretch()
+        seg_header_layout.addWidget(btn_add)
         seg_header_layout.addWidget(btn_merge)
 
         header_frame = QFrame()
@@ -202,6 +208,7 @@ class MainWindow(QMainWindow):
         right_layout.insertWidget(1, self._subtitle_container)
 
         self._btn_reset = btn_reset
+        self._btn_add = btn_add
         return btn_merge
 
     def eventFilter(self, obj, event):
@@ -227,7 +234,7 @@ class MainWindow(QMainWindow):
         from PyQt6.QtGui import QPixmap, QFont
         from PyQt6.QtCore import Qt
 
-        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "logo.png")
+        logo_path = resource_path("icons", "logo.png")
         text_label = QLabel()
         pixmap = QPixmap(logo_path)
         text_label.setPixmap(pixmap.scaledToHeight(36, Qt.TransformationMode.SmoothTransformation))
@@ -323,9 +330,10 @@ class MainWindow(QMainWindow):
         # 자막 수정 확인
         self.btn_subtitle_confirm.clicked.connect(self._on_subtitle_confirm)
 
-        # 구간 병합 / Reset
+        # 구간 병합 / Reset / 구간 추가
         self._btn_merge.clicked.connect(self._merge_segments)
         self._btn_reset.clicked.connect(self._reset_segment)
+        self._btn_add.clicked.connect(self._show_add_segment_menu)
 
         # AI
         self.btn_start_process.clicked.connect(self._start_analysis)
@@ -472,7 +480,7 @@ class MainWindow(QMainWindow):
         if self._analysis_popup:
             self._analysis_popup.mark_step1_complete(count)
 
-        self.label_status.setText(f"✅ {count}개 구간 감지됨 — 자막 생성 중...")
+        self.label_status.setText(f"{count}개 구간 감지됨 — 자막 생성 중...")
 
         self._stt_worker = STTWorker(self._video_path, self._segments, self._load_settings())
         self._stt_worker.progress_updated.connect(self.progress_bar.setValue)
@@ -495,7 +503,7 @@ class MainWindow(QMainWindow):
         self._original_segments = [dict(seg) for seg in self._segments]
         self.btn_render.setEnabled(True)
         self.label_status.setText(
-            "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
+            "자막 생성 완료 — 편집 구간 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
         if self._analysis_popup:
             self._analysis_popup.mark_complete(len(self._segments))
@@ -554,7 +562,7 @@ class MainWindow(QMainWindow):
         self.label_file_path.setText(output_path)
         self._video_player.load(output_path)
 
-        self.label_status.setText("✅ 렌더링 완료 — 결과 영상을 재생해보세요")
+        self.label_status.setText("렌더링 완료 — 결과 영상을 재생해보세요")
 
         original_ms = max((s.get("end", 0) for s in self._segments), default=0)
         edited_ms   = sum(s["end"] - s["start"] for s in self._segments if s.get("keep", True))
@@ -670,7 +678,7 @@ class MainWindow(QMainWindow):
 
     def _on_settings_cancelled(self):
         if self._video_path:
-            self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
+            self.label_status.setText("파일 로드 완료 — 편집 시작 버튼을 눌러주세요")
 
     def _on_settings_saved(self):
         s = QSettings("SNAP", "Editor")
@@ -679,8 +687,8 @@ class MainWindow(QMainWindow):
         models = ["tiny", "base", "small", "medium", "large"]
         model_name = models[model_idx] if model_idx < len(models) else "medium"
         self.label_status.setText(
-            f"✅ 설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
-            + (" — AI 분석 시작 버튼을 눌러주세요" if self._video_path else "")
+            f"설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
+            + (" — 편집 시작 버튼을 눌러주세요" if self._video_path else "")
         )
 
     # ── 구간 선택 + 자막 ──────────────────────────────────────────────────────
@@ -691,6 +699,7 @@ class MainWindow(QMainWindow):
     def _on_selection_changed(self):
         rows = self._get_selected_rows()
         self._btn_merge.setEnabled(len(rows) >= 2)
+        self._btn_add.setEnabled(len(rows) == 1)
 
     def _on_segment_selected(self, row: int, *_):
         self._waveform.set_selected(row)
@@ -795,6 +804,41 @@ class MainWindow(QMainWindow):
 
         self._populate_segments(self._segments)
         self.list_segments.selectRow(rows[0])
+
+    def _show_add_segment_menu(self):
+        from PyQt6.QtWidgets import QMenu
+        rows = self._get_selected_rows()
+        if len(rows) != 1:
+            return
+        menu = QMenu(self)
+        menu.addAction("앞에 구간 추가", lambda: self._insert_segment(rows[0], before=True))
+        menu.addAction("뒤에 구간 추가", lambda: self._insert_segment(rows[0], before=False))
+        menu.exec(self._btn_add.mapToGlobal(self._btn_add.rect().bottomLeft()))
+
+    def _insert_segment(self, row: int, before: bool):
+        segs = self._segments
+        if before:
+            ref_end   = segs[row]["start"]
+            ref_start = segs[row - 1]["end"] if row > 0 else 0
+            new_start = max(ref_start, ref_end - 1000)
+            new_end   = ref_end
+        else:
+            ref_start = segs[row]["end"]
+            ref_end   = segs[row + 1]["start"] if row + 1 < len(segs) else ref_start + 1000
+            new_start = ref_start
+            new_end   = min(ref_end, ref_start + 1000)
+
+        if new_start >= new_end:
+            QMessageBox.warning(self, "추가 불가",
+                                "인접 구간 사이에 여유 시간이 없어 구간을 추가할 수 없습니다.")
+            return
+
+        new_seg = {"start": new_start, "end": new_end, "keep": True, "text": ""}
+        insert_idx = row if before else row + 1
+        self._segments.insert(insert_idx, new_seg)
+
+        self._populate_segments(self._segments)
+        self.list_segments.selectRow(insert_idx)
 
     def _apply_time_edit(self, row: int, new_start: int, new_end: int):
         seg = self._segments[row]

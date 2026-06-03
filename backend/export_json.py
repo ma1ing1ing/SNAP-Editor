@@ -70,11 +70,20 @@ def detect_silence(audio_path, min_silence_seconds=1.0, threshold=0.5, progress_
         "silence_segments": [],
     }
 
+    # 정렬 + 겹침 병합: 비순차 타임스탬프로 인한 누락 구간 방지
+    sorted_ts = sorted(speech_timestamps, key=lambda t: t["start"])
+    merged_ts = []
+    for ts in sorted_ts:
+        if merged_ts and ts["start"] <= merged_ts[-1]["end"]:
+            merged_ts[-1]["end"] = max(merged_ts[-1]["end"], ts["end"])
+        else:
+            merged_ts.append({"start": ts["start"], "end": ts["end"]})
+
     silence_return_list = []
     current_last_pos = 0.0
     silence_id = 1
 
-    for idx, timestamp in enumerate(speech_timestamps):
+    for idx, timestamp in enumerate(merged_ts):
         start_sec = round(timestamp["start"] / 16000, 2)
         end_sec = round(timestamp["end"] / 16000, 2)
 

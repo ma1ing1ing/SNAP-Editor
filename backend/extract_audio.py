@@ -30,7 +30,7 @@ def extract_audio(video_path, output_audio_path):
             .overwrite_output()     
             .run(capture_stdout=True, capture_stderr=True)
         )
-        print(f"✅ 오디오 추출 완료: {output_audio_path}")
+        print(f"오디오 추출 완료: {output_audio_path}")
         return True
         
     except ffmpeg.Error as e:
