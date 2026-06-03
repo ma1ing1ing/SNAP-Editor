@@ -72,7 +72,7 @@ class MainWindow(QMainWindow):
         layout.insertWidget(1, header)
         layout.insertLayout(2, row)
 
-        self.text_subtitle_edit.setMaximumHeight(90)
+        self.text_subtitle_edit.setMaximumHeight(16777215)
 
         return start_edit, end_edit
 
@@ -145,9 +145,6 @@ class MainWindow(QMainWindow):
         subtitle_header_layout = QHBoxLayout()
         subtitle_header_layout.setContentsMargins(8, 5, 8, 5)
         subtitle_header_layout.addWidget(title_label)
-        subtitle_header_layout.addStretch()
-        subtitle_header_layout.addWidget(btn_reset)
-        subtitle_header_layout.addWidget(self.btn_subtitle_confirm)
 
         subtitle_header_frame = QFrame()
         subtitle_header_frame.setObjectName("subtitle_header_frame")
@@ -157,20 +154,36 @@ class MainWindow(QMainWindow):
             " border-top-left-radius: 6px; border-top-right-radius: 6px; }"
         )
 
-        # frame_subtitle_editor를 content area로 재활용: 자체 스타일·크기 제약 제거
+        # frame_subtitle_editor를 content area로 재활용
         right_layout.removeWidget(self.frame_subtitle_editor)
         self.frame_subtitle_editor.setFrameShape(QFrame.Shape.NoFrame)
         self.frame_subtitle_editor.setStyleSheet("")
         self.frame_subtitle_editor.setMinimumHeight(0)
         self.frame_subtitle_editor.setMaximumHeight(16777215)
         content_layout = self.frame_subtitle_editor.layout()
-        content_layout.setContentsMargins(8, 6, 8, 6)
-        content_layout.setSpacing(2)
-        # btn_subtitle_confirm 제거 후 빈 채로 남은 layout_subtitle_edit_buttons 제거
+        content_layout.setContentsMargins(8, 4, 8, 6)
+        content_layout.setSpacing(4)
         content_layout.removeItem(self.layout_subtitle_edit_buttons)
-        # 남은 여백을 하단으로 밀기
+
+        # 버튼을 텍스트 영역 바로 아래 우하단에 밀착
+        btn_reset.setStyleSheet(
+            "QPushButton { font-size: 11px; border: 1px solid #999; border-radius: 4px;"
+            " padding: 2px 10px; color: #555; background: #fff; }"
+            "QPushButton:disabled { color: #ccc; border-color: #ddd; }"
+        )
+        self.btn_subtitle_confirm.setStyleSheet(
+            "QPushButton { font-size: 11px; border: 1px solid #1c1c1e; border-radius: 4px;"
+            " padding: 2px 10px; color: #1c1c1e; background: #fff; }"
+            "QPushButton:disabled { color: #ccc; border-color: #ddd; }"
+        )
         from PyQt6.QtWidgets import QSpacerItem, QSizePolicy as SP
-        content_layout.addSpacerItem(QSpacerItem(0, 0, SP.Policy.Minimum, SP.Policy.Expanding))
+        btn_row = QHBoxLayout()
+        btn_row.setContentsMargins(0, 0, 0, 0)
+        btn_row.setSpacing(6)
+        btn_row.addStretch()
+        btn_row.addWidget(btn_reset)
+        btn_row.addWidget(self.btn_subtitle_confirm)
+        content_layout.addLayout(btn_row)
 
         self._subtitle_container = QFrame()
         self._subtitle_container.setObjectName("subtitle_container")
@@ -249,7 +262,7 @@ class MainWindow(QMainWindow):
 
         # 파형 190px, 편집 패널 220px 고정
         self.timeline_frame.setFixedHeight(190)
-        self._subtitle_container.setFixedHeight(220)
+        self._subtitle_container.setFixedHeight(250)
 
         # 바깥 여백: 좌12 상8 우12 하12
         main_layout = self.findChild(QVBoxLayout, "verticalLayout_main")
