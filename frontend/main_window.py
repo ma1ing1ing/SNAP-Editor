@@ -800,9 +800,9 @@ class MainWindow(QMainWindow):
     def _load_settings(self) -> dict:
         s = QSettings("SNAP", "Editor")
         return {
-            "silence_threshold": float(s.value("silence_threshold", 0.3)),
+            "silence_threshold": float(s.value("silence_threshold", 0.5)),
+            "min_silence_ms": int(s.value("min_silence_ms", 500)),
             "whisper_model": int(s.value("whisper_model", 3)),
-            "stopword_mode": s.value("stopword_mode", "default")
         }
 
 

@@ -1,15 +1,9 @@
-import json
 import os
-import sys
 import threading
 import time
 
 import stable_whisper as ststable
 from kiwipiepy import Kiwi
-
-# Allow backend code to import AI.main from the project root.
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-from AI.main import run_ai_pipeline
 
 
 def format_time(seconds):
@@ -27,7 +21,6 @@ def transcribe_video_to_srt(
     model_size="small",
     status_callback=None,
     progress_callback=None,
-    stopword_mode="default",
 ):
     def emit_status(msg):
         if status_callback:
@@ -131,31 +124,4 @@ def transcribe_video_to_srt(
             "words": words_list,
         })
 
-    print("[AI] building compatibility result...")
-    emit_status("Building AI compatibility result...")
-    emit_progress(85)
-    ai_result = {}
-    try:
-        ai_result = run_ai_pipeline(
-            video_path=video_path,
-            params={
-                "mode": stopword_mode,
-                "stt_result": stt_result,
-            },
-        )
-
-        ai_output_path = os.path.join(os.path.dirname(output_srt_path), "ai_result.json")
-        with open(ai_output_path, "w", encoding="utf-8") as f:
-            json.dump(ai_result, f, ensure_ascii=False, indent=2)
-
-        backend_data_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "Data"))
-        os.makedirs(backend_data_dir, exist_ok=True)
-        cached_ai_path = os.path.join(backend_data_dir, "cached_ai_result.json")
-        with open(cached_ai_path, "w", encoding="utf-8") as f:
-            json.dump(ai_result, f, ensure_ascii=False, indent=2)
-
-        print(f"[AI] compatibility result saved: {ai_output_path}")
-    except Exception as e:
-        print(f"[AI] compatibility result failed: {e}")
-
-    return output_srt_path, detected_lang, stt_result, ai_result
+    return output_srt_path, detected_lang, stt_result

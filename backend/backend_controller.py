@@ -8,8 +8,8 @@ sys.path.append(os.path.dirname(os.path.abspath(__file__)))
 # backend/Data 경로 — 실행 위치에 관계없이 이 파일 기준으로 고정
 _DATA_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "Data")
 
-from backend.extract_audio import extract_audio
-from backend.editor import create_final_edited_video, add_subtitles_to_video
+from extract_audio import extract_audio
+from editor import create_final_edited_video, add_subtitles_to_video
 from transcriber import transcribe_video_to_srt
 from export_json import detect_silence
 
@@ -61,6 +61,8 @@ class BackendController:
         # 명세서에 맞게 무음 튜플 리스트(silence_list)와 상세 JSON 데이터(detailed_json_data)를 통째로 받아옴
         silence_list, detailed_json_data = detect_silence(
             temp_audio,
+            threshold=threshold,
+            min_silence_seconds=min_silence_ms / 1000,
             progress_callback=self._progress,
             log_callback=self._log,
         )
@@ -91,24 +93,22 @@ class BackendController:
             "silence_list": formatted_segments 
         }
     
-    def run_step2_stt(self, video_path, srt_path, whisper_model, stopword_mode="default"):
+    def run_step2_stt(self, video_path, srt_path, whisper_model):
         """
         Step 2: STTWorker에서 호출하는 통합 STT 메서드
         """
         self._log(f"▶ STT 모델({whisper_model}) 로드 중...")
         self._progress(0)
-        
+
         from transcriber import transcribe_video_to_srt
-        
-        # transcriber를 호출하며 status_callback을 전달
-        srt_path, detected_lang, stt_result, ai_result = transcribe_video_to_srt(
+
+        _, _, stt_result = transcribe_video_to_srt(
             video_path, srt_path, model_size=whisper_model,
             status_callback=self._log, progress_callback=self._progress,
-            stopword_mode=stopword_mode
         )
-        
+
         self._progress(100)
-        return stt_result, ai_result
+        return stt_result
 
     def run_final_render(self, input_video, segments, output_video):
         """
@@ -191,21 +191,7 @@ class BackendController:
             self._progress(100)
             self._log(f"✅ 최종 영상 생성 완료: {output_video}")
 
-            # 5. 캐싱해두었던 원본 불용어 데이터 불러오기
-            cut_points = []
-            cached_ai_path = os.path.join(_DATA_DIR, "cached_ai_result.json")
-            if os.path.exists(cached_ai_path):
-                with open(cached_ai_path, "r", encoding="utf-8") as f:
-                    ai_res = json.load(f)
-                    cut_points = ai_res.get("cut_points", [])
-
-                # 사용 완료된 캐시 파일 삭제
-                try:
-                    os.remove(cached_ai_path)
-                except Exception:
-                    pass
-
-            # 6. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
+            # 5. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
             try:
                 if os.path.exists(temp_edited):
                     os.remove(temp_edited)
@@ -220,7 +206,6 @@ class BackendController:
 
             return {
                 "final_result": output_video,
-                "cut_points": cut_points
             }
         else:
             self._log("❌ 자막 병합 실패")

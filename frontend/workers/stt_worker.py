@@ -78,7 +78,6 @@ class STTWorker(QThread):
 
             model_idx     = int(self._settings.get("whisper_model", 2))
             whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
-            stopword_mode = self._settings.get("stopword_mode", "default")
 
             bc = BackendController(
                 progress_callback=lambda p: self.progress_updated.emit(p),
@@ -87,8 +86,8 @@ class STTWorker(QThread):
 
             with tempfile.TemporaryDirectory() as tmp:
                 srt_path = os.path.join(tmp, "subtitle.srt")
-                stt_result, _ = bc.run_step2_stt(
-                    self._video_path, srt_path, whisper_model, stopword_mode
+                stt_result = bc.run_step2_stt(
+                    self._video_path, srt_path, whisper_model
                 )
 
             updated = _assign_stt_to_segments(self._segments, stt_result)

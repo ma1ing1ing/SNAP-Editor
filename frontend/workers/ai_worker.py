@@ -146,10 +146,12 @@ class AIWorker(QThread):
             temp_json  = os.path.join(tmp, "silence.json")
 
             # Step 1: 오디오 추출 + VAD
-            threshold = float(self._settings.get("silence_threshold", 0.3))
+            threshold = float(self._settings.get("silence_threshold", 0.5))
+            min_silence_ms = int(self._settings.get("min_silence_ms", 500))
             result = bc.run_step1_extract_and_vad(
                 self._video_path, temp_audio, temp_json,
                 threshold=threshold,
+                min_silence_ms=min_silence_ms,
             )
             if result is None:
                 raise RuntimeError("VAD 분석 실패 — 오디오 추출을 확인해주세요")
