@@ -42,7 +42,7 @@ def transcribe_video_to_srt(
             started_at = time.time()
             while not stop_event.wait(8):
                 elapsed = int(time.time() - started_at)
-                emit_status(f"STT recognition running... ({elapsed // 60:02}:{elapsed % 60:02} elapsed)")
+                emit_status(f"자막 생성 중... {elapsed // 60:02}:{elapsed % 60:02} 경과")
                 emit_progress(progress)
                 if progress < 65:
                     progress += 1
@@ -51,14 +51,14 @@ def transcribe_video_to_srt(
         thread.start()
         return stop_event
 
-    emit_status(f"Loading STT model ({model_size})...")
+    emit_status("자막 생성을 준비하는 중...")
     emit_progress(10)
     print(f"\n[STT] stable-ts transcription started: {video_path} (model: {model_size})")
 
     model = ststable.load_model(model_size)
     kiwi = Kiwi()
 
-    emit_status("STT recognition running... This can take several minutes depending on video length.")
+    emit_status("자막 변환 중...\n영상 길이에 따라 몇 분 걸릴 수 있습니다.")
     emit_progress(30)
 
     transcribe_progress = start_transcribe_progress()
@@ -81,7 +81,7 @@ def transcribe_video_to_srt(
     )
 
     detected_lang = result.language
-    emit_status(f"Post-processing subtitles... (language: {detected_lang})")
+    emit_status("자막을 정리하는 중...")
     emit_progress(70)
     print(f"[STT] detected language: {detected_lang}")
 

@@ -24,6 +24,7 @@ class AnalysisPopup(QDialog):
         self._timer.start(1000)
 
         self.setWindowTitle("AI 분석 중")
+        self.label_title.setWordWrap(True)
         self.label_title.setText("AI 분석 중입니다...")
         self.btn_cancel.setText("취소")
         self.btn_cancel.clicked.connect(self._on_cancel)

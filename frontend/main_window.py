@@ -87,6 +87,11 @@ class MainWindow(QMainWindow):
         btn_merge.setFixedHeight(22)
         btn_merge.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
+        btn_add = QPushButton("+ 구간 추가")
+        btn_add.setEnabled(False)
+        btn_add.setFixedHeight(22)
+        btn_add.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
+
         btn_reset = QPushButton("Reset")
         btn_reset.setEnabled(False)
         btn_reset.setFixedHeight(22)
@@ -106,6 +111,7 @@ class MainWindow(QMainWindow):
         seg_header_layout.setContentsMargins(8, 5, 8, 5)
         seg_header_layout.addWidget(seg_title)
         seg_header_layout.addStretch()
+        seg_header_layout.addWidget(btn_add)
         seg_header_layout.addWidget(btn_merge)
 
         header_frame = QFrame()
@@ -202,6 +208,7 @@ class MainWindow(QMainWindow):
         right_layout.insertWidget(1, self._subtitle_container)
 
         self._btn_reset = btn_reset
+        self._btn_add = btn_add
         return btn_merge
 
     def eventFilter(self, obj, event):
@@ -323,9 +330,10 @@ class MainWindow(QMainWindow):
         # 자막 수정 확인
         self.btn_subtitle_confirm.clicked.connect(self._on_subtitle_confirm)
 
-        # 구간 병합 / Reset
+        # 구간 병합 / Reset / 구간 추가
         self._btn_merge.clicked.connect(self._merge_segments)
         self._btn_reset.clicked.connect(self._reset_segment)
+        self._btn_add.clicked.connect(self._show_add_segment_menu)
 
         # AI
         self.btn_start_process.clicked.connect(self._start_analysis)
@@ -691,6 +699,7 @@ class MainWindow(QMainWindow):
     def _on_selection_changed(self):
         rows = self._get_selected_rows()
         self._btn_merge.setEnabled(len(rows) >= 2)
+        self._btn_add.setEnabled(len(rows) == 1)
 
     def _on_segment_selected(self, row: int, *_):
         self._waveform.set_selected(row)
@@ -795,6 +804,41 @@ class MainWindow(QMainWindow):
 
         self._populate_segments(self._segments)
         self.list_segments.selectRow(rows[0])
+
+    def _show_add_segment_menu(self):
+        from PyQt6.QtWidgets import QMenu
+        rows = self._get_selected_rows()
+        if len(rows) != 1:
+            return
+        menu = QMenu(self)
+        menu.addAction("앞에 구간 추가", lambda: self._insert_segment(rows[0], before=True))
+        menu.addAction("뒤에 구간 추가", lambda: self._insert_segment(rows[0], before=False))
+        menu.exec(self._btn_add.mapToGlobal(self._btn_add.rect().bottomLeft()))
+
+    def _insert_segment(self, row: int, before: bool):
+        segs = self._segments
+        if before:
+            ref_end   = segs[row]["start"]
+            ref_start = segs[row - 1]["end"] if row > 0 else 0
+            new_start = max(ref_start, ref_end - 1000)
+            new_end   = ref_end
+        else:
+            ref_start = segs[row]["end"]
+            ref_end   = segs[row + 1]["start"] if row + 1 < len(segs) else ref_start + 1000
+            new_start = ref_start
+            new_end   = min(ref_end, ref_start + 1000)
+
+        if new_start >= new_end:
+            QMessageBox.warning(self, "추가 불가",
+                                "인접 구간 사이에 여유 시간이 없어 구간을 추가할 수 없습니다.")
+            return
+
+        new_seg = {"start": new_start, "end": new_end, "keep": True, "text": ""}
+        insert_idx = row if before else row + 1
+        self._segments.insert(insert_idx, new_seg)
+
+        self._populate_segments(self._segments)
+        self.list_segments.selectRow(insert_idx)
 
     def _apply_time_edit(self, row: int, new_start: int, new_end: int):
         seg = self._segments[row]
