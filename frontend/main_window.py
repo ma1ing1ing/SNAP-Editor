@@ -341,7 +341,8 @@ class MainWindow(QMainWindow):
 
     def _apply_video_path(self, path: str):
         self._video_path = path
-        self.label_file_path.setText(path)
+        self.label_file_path.setText(os.path.basename(path))
+        self.label_file_path.setToolTip(path)
         self.btn_render.setEnabled(False)
         self._video_player.load(path)
 
