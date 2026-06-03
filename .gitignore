@@ -1,22 +1,43 @@
-# Local IDE settings
+# ── IDE / 로컬 도구 ──────────────────────────────────────────────────────────
 .idea/
 .vscode/
-
-# AI 도구 및 로컬 설정
 .opencode/
 .claude/
+.codex/
+.gemini-clipboard/
 graphify-out/
 AGENTS.md
-CLAUDE.md
 
-# 1. 테스트용 대용량 미디어 파일
-*.mp4
+# ── Python ───────────────────────────────────────────────────────────────────
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+
+# ── macOS ────────────────────────────────────────────────────────────────────
+.DS_Store
+**/.DS_Store
+
+# ── 테스트용 대용량 미디어 / 작업 결과물 ────────────────────────────────────────
+backend/Data/*.mp4
+backend/Data/*.wav
+backend/Data/*.srt
+backend/Data/*.json
+backend/Data/temp_clips/
 *.MP4
-*.wav
 *.avi
 *.mkv
+
+# ── 빌드 결과물 ───────────────────────────────────────────────────────────────
+dist/
+build/
+*.spec.bak
+
+# ── 기타 ─────────────────────────────────────────────────────────────────────
 *.log
 *.tmp
-
-# Secrets
 .env
+DEPLOYMENT_PLAN.md
