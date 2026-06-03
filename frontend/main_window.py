@@ -602,12 +602,10 @@ class MainWindow(QMainWindow):
             tbl.setItem(row, 0, time_item)
 
             btn_ok = QPushButton("✓")
-            btn_ok.setStyleSheet("color: #2e7d32; font-weight: bold;")
             btn_ok.clicked.connect(lambda _, r=row: self._set_keep(r, True))
             tbl.setCellWidget(row, 1, btn_ok)
 
             btn_x = QPushButton("✗")
-            btn_x.setStyleSheet("color: #c62828; font-weight: bold;")
             btn_x.clicked.connect(lambda _, r=row: self._set_keep(r, False))
             tbl.setCellWidget(row, 2, btn_x)
 
@@ -627,10 +625,13 @@ class MainWindow(QMainWindow):
 
     def _apply_row_color(self, row: int):
         keep = self._segments[row].get("keep", True)
-        color = QColor("#C8E6C9") if keep else QColor("#FFCDD2")
-        item = self.list_segments.item(row, 0)
-        if item:
-            item.setBackground(color)
+        bg_hex = "#E8F5E9" if keep else "#FFEBEE"
+        bg_color = QColor(bg_hex)
+
+        for col in (0, 3):
+            item = self.list_segments.item(row, col)
+            if item:
+                item.setBackground(bg_color)
 
         btn_ok = self.list_segments.cellWidget(row, 1)
         btn_x  = self.list_segments.cellWidget(row, 2)
