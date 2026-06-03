@@ -76,8 +76,8 @@ class STTWorker(QThread):
 
             from backend_controller import BackendController
 
-            model_idx     = int(self._settings.get("whisper_model", 2))
-            whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "small"
+            model_idx     = int(self._settings.get("whisper_model", 3))
+            whisper_model = self._MODELS[model_idx] if model_idx < len(self._MODELS) else "medium"
 
             bc = BackendController(
                 progress_callback=lambda p: self.progress_updated.emit(p),
