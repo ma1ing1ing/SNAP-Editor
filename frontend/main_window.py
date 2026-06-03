@@ -678,7 +678,7 @@ class MainWindow(QMainWindow):
 
     def _on_settings_cancelled(self):
         if self._video_path:
-            self.label_status.setText("파일 로드 완료 — AI 분석 시작 버튼을 눌러주세요")
+            self.label_status.setText("파일 로드 완료 — 편집 시작 버튼을 눌러주세요")
 
     def _on_settings_saved(self):
         s = QSettings("SNAP", "Editor")
@@ -688,7 +688,7 @@ class MainWindow(QMainWindow):
         model_name = models[model_idx] if model_idx < len(models) else "medium"
         self.label_status.setText(
             f"설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
-            + (" — AI 분석 시작 버튼을 눌러주세요" if self._video_path else "")
+            + (" — 편집 시작 버튼을 눌러주세요" if self._video_path else "")
         )
 
     # ── 구간 선택 + 자막 ──────────────────────────────────────────────────────

@@ -26,40 +26,45 @@ def _convert_to_segments(silence_list: list[dict], duration_ms: int) -> list[dic
     """
     백엔드 반환값(무음 구간, 초 단위) → 프론트 형식(전체 구간, ms 단위).
     발화 구간(keep=True)과 무음 구간(keep=False)을 교차 배치.
+    전체 타임라인(0 ~ duration_ms)을 빈틈 없이 커버하도록 보장.
     """
+    # 1. 정렬 + 겹침 병합
+    silences = sorted(silence_list, key=lambda s: s["start"])
+    merged = []
+    for sil in silences:
+        if merged and sil["start"] <= merged[-1]["end"]:
+            merged[-1]["end"] = max(merged[-1]["end"], sil["end"])
+        else:
+            merged.append({"start": sil["start"], "end": sil["end"]})
+
+    # 2. 무음/발화 구간 생성
     segments = []
     cursor = 0.0
-    total_s = duration_ms / 1000.0
-
-    for sil in silence_list:
+    for sil in merged:
         s_start = sil["start"]
-        s_end = sil["end"]
-
+        s_end   = sil["end"]
         if s_start > cursor + 0.05:
-            segments.append({
-                "start": int(cursor * 1000),
-                "end":   int(s_start * 1000),
-                "text":  "",
-                "keep":  True,
-            })
-
-        segments.append({
-            "start": int(s_start * 1000),
-            "end":   int(s_end * 1000),
-            "text":  "",
-            "keep":  False,
-        })
+            segments.append({"start": int(cursor * 1000), "end": int(s_start * 1000), "text": "", "keep": True})
+        segments.append({"start": int(s_start * 1000), "end": int(s_end * 1000), "text": "", "keep": False})
         cursor = s_end
 
     if cursor * 1000 < duration_ms - 100:
-        segments.append({
-            "start": int(cursor * 1000),
-            "end":   duration_ms,
-            "text":  "",
-            "keep":  True,
-        })
+        segments.append({"start": int(cursor * 1000), "end": duration_ms, "text": "", "keep": True})
 
-    return segments
+    # 3. 후처리: 정렬 후 남은 gap을 keep=True로 채움 (VAD 누락 구간 보완)
+    segments.sort(key=lambda s: s["start"])
+    filled = []
+    prev_end = 0
+    for seg in segments:
+        if seg["start"] > prev_end + 100:   # 100ms 이상 gap → 발화로 채움
+            filled.append({"start": prev_end, "end": seg["start"], "text": "", "keep": True})
+        filled.append(seg)
+        prev_end = max(prev_end, seg["end"])
+
+    if prev_end < duration_ms - 100:
+        filled.append({"start": prev_end, "end": duration_ms, "text": "", "keep": True})
+
+    return filled
 
 
 def _extract_amplitudes(audio_path: str, duration_ms: int, num_samples: int = 2000) -> list[float]:
@@ -160,7 +165,14 @@ class AIWorker(QThread):
             self.status_changed.emit("파형 데이터 추출 중...")
 
             silence_list = result["silence_list"]
+            print(f"\n[DEBUG] silence_list ({len(silence_list)}개):")
+            for s in silence_list:
+                print(f"  silence {s['start']:.2f}s ~ {s['end']:.2f}s ({s['end']-s['start']:.2f}s)")
             segments = _convert_to_segments(silence_list, duration_ms)
+            print(f"\n[DEBUG] segments ({len(segments)}개):")
+            for s in segments:
+                tag = "KEEP" if s["keep"] else "REMOVE"
+                print(f"  {tag} {s['start']}ms ~ {s['end']}ms")
             amplitudes = _extract_amplitudes(temp_audio, duration_ms)
 
         self.progress_updated.emit(100)

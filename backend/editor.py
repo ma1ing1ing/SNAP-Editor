@@ -38,7 +38,7 @@ def create_final_edited_audio(audio_path, silence_segments, output_file="./backe
         joined = ffmpeg.concat(*streams, v=0, a=1)
         joined = ffmpeg.output(joined, output_file)
         ffmpeg.run(joined, overwrite_output=True, capture_stdout=True, capture_stderr=True)
-        print(f"✅ 최종 편집 파일 생성 완료: {output_file}")
+        print(f"최종 편집 파일 생성 완료: {output_file}")
         
     except ffmpeg.Error as e:
         print("❌ FFmpeg 클립 생성 중 에러 발생")
@@ -100,7 +100,7 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
         
         # 실제 렌더링 실행
         ffmpeg.run(joined, overwrite_output=True, capture_stdout=True, capture_stderr=True)
-        print(f"✅ 최종 편집 영상(MP4) 생성 완료: {output_file}")
+        print(f"최종 편집 영상(MP4) 생성 완료: {output_file}")
         print("🎬 이 영상을 재생해 보세요! 숨소리 구간에서 화면이 '팟' 하고 넘어가는 점프 컷을 볼 수 있습니다.")
         
     except ffmpeg.Error as e:
@@ -138,7 +138,7 @@ def add_subtitles_to_video(video_path, srt_path, output_file, language='ko'):
             )
             .run(overwrite_output=True, capture_stdout=True, capture_stderr=True)
         )
-        print(f"✅ 자막 병합 완료: {output_file}")
+        print(f"자막 병합 완료: {output_file}")
         return True
     except ffmpeg.Error as e:
         print("❌ 자막 병합 실패")

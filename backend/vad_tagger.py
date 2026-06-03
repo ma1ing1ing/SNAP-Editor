@@ -85,7 +85,7 @@ def detect_and_tag_silence(audio_path):
         else:
             print(f"  - 🚫 제외됨: {sil['start']:.2f}초 ~ {sil['end']:.2f}초 (소리 크기가 커서 보존합니다. RMS: {segment_rms:.4f})")
 
-    print(f"✅ 최종 확정된 진짜 무음 구간 개수: {len(final_silence_seconds)}개")
+    print(f"최종 확정된 진짜 무음 구간 개수: {len(final_silence_seconds)}개")
 
     # ==========================================
     # 5. 시각화 (파형 + 최종 무음 태깅)
