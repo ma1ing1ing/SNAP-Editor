@@ -227,13 +227,11 @@ class MainWindow(QMainWindow):
         from PyQt6.QtGui import QPixmap, QFont
         from PyQt6.QtCore import Qt
 
-        text_label = QLabel("SNAP")
-        font = QFont()
-        font.setPointSize(24)
-        font.setLetterSpacing(QFont.SpacingType.AbsoluteSpacing, 4)
-        font.setBold(True)
-        text_label.setFont(font)
-        text_label.setStyleSheet("color: white;")
+        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "logo.png")
+        text_label = QLabel()
+        pixmap = QPixmap(logo_path)
+        text_label.setPixmap(pixmap.scaledToHeight(36, Qt.TransformationMode.SmoothTransformation))
+        text_label.setStyleSheet("background: transparent;")
 
         center_layout = QHBoxLayout()
         center_layout.setSpacing(8)
@@ -262,7 +260,7 @@ class MainWindow(QMainWindow):
 
         # 파형 190px, 편집 패널 220px 고정
         self.timeline_frame.setFixedHeight(190)
-        self._subtitle_container.setFixedHeight(250)
+        self._subtitle_container.setFixedHeight(220)
 
         # 바깥 여백: 좌12 상8 우12 하12
         main_layout = self.findChild(QVBoxLayout, "verticalLayout_main")
