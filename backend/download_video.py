@@ -19,13 +19,18 @@ def download_video(url: str, output_dir: str, progress_callback=None) -> str:
         elif d["status"] == "finished":
             downloaded_path.append(d["filename"])
 
+    bgutil_server = os.path.expanduser("~/bgutil-ytdlp-pot-provider/server")
+    extractor_args = {}
+    if os.path.isdir(bgutil_server):
+        extractor_args["youtubepot-bgutilscript"] = {"server_home": [bgutil_server]}
+
     ydl_opts = {
         "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
         "outtmpl": os.path.join(output_dir, "%(title)s.%(ext)s"),
         "noplaylist": True,
         "merge_output_format": "mp4",
         "cookiesfrombrowser": ("chrome",),
-        "extractor_args": {"youtube": {"player_client": ["tv_embedded", "web"]}},
+        "extractor_args": extractor_args,
         "progress_hooks": [_progress_hook],
         "quiet": True,
         "no_warnings": True,
