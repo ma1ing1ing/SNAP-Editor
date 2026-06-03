@@ -98,7 +98,7 @@ def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict
             "start": cursor,
             "end": segment_end,
             "text": "",
-            "keep": True
+            "keep": False  # 빈 텍스트 구간(Gap)은 기본적으로 REMOVE(✗) 처리
         })
         cursor = segment_end
 
