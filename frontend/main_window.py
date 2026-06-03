@@ -11,6 +11,7 @@ from video_player import VideoPlayer
 from workers.ai_worker import AIWorker
 from workers.render_worker import RenderWorker
 from workers.stt_worker import STTWorker
+from workers.download_worker import DownloadWorker
 from utils.time_formatter import format_time
 from widgets.waveform_widget import WaveformWidget
 
@@ -27,6 +28,7 @@ class MainWindow(QMainWindow):
         self._ai_worker = None
         self._stt_worker = None
         self._render_worker = None
+        self._download_worker = None
         self._segments: list = []
         self._original_segments: list = []
         self._analysis_popup: Optional[AnalysisPopup] = None
@@ -271,6 +273,7 @@ class MainWindow(QMainWindow):
     def _connect_signals(self):
         # 파일
         self.btn_open_file.clicked.connect(self._open_file)
+        self.btn_open_url.clicked.connect(self._open_url)
 
         # 재생 컨트롤 (토글 버튼)
         self.btn_pause.hide()
@@ -335,13 +338,58 @@ class MainWindow(QMainWindow):
         )
         if not path:
             return
+        self._apply_video_path(path)
+        self._open_settings()
 
+    def _apply_video_path(self, path: str):
         self._video_path = path
         self.label_file_path.setText(path)
         self.btn_render.setEnabled(False)
         self._video_player.load(path)
 
-        self._open_settings()
+    # ── URL 다운로드 ───────────────────────────────────────────────────────────
+
+    def _open_url(self):
+        from PyQt6.QtWidgets import QInputDialog
+        url, ok = QInputDialog.getText(
+            self,
+            "URL 입력",
+            "유튜브 또는 지원 플랫폼 URL을 입력하세요:",
+        )
+        if not ok or not url.strip():
+            return
+
+        self.btn_open_file.setEnabled(False)
+        self.btn_open_url.setEnabled(False)
+        self.label_status.setText("다운로드 준비 중...")
+
+        self._download_worker = DownloadWorker(url.strip())
+        self._download_worker.progress_updated.connect(self._on_download_progress)
+        self._download_worker.status_changed.connect(self.label_status.setText)
+        self._download_worker.download_complete.connect(self._on_download_complete)
+        self._download_worker.error_occurred.connect(self._on_download_error)
+        self._download_worker.start()
+
+    def _on_download_progress(self, pct: int):
+        # progressBar가 있으면 업데이트, 없으면 label_status만 사용
+        if hasattr(self, "progressBar"):
+            self.progressBar.setValue(pct)
+
+    def _on_download_complete(self, path: str):
+        self.btn_open_file.setEnabled(True)
+        self.btn_open_url.setEnabled(True)
+        if hasattr(self, "progressBar"):
+            self.progressBar.setValue(0)
+        self._apply_video_path(path)
+        self._start_analysis()
+
+    def _on_download_error(self, msg: str):
+        self.btn_open_file.setEnabled(True)
+        self.btn_open_url.setEnabled(True)
+        if hasattr(self, "progressBar"):
+            self.progressBar.setValue(0)
+        self.label_status.setText(f"⚠ 다운로드 실패: {msg}")
+        QMessageBox.warning(self, "다운로드 실패", msg)
 
     # ── 재생 컨트롤 ───────────────────────────────────────────────────────────
 
