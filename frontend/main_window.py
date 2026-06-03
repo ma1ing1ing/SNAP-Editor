@@ -4,6 +4,7 @@ from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushBut
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PyQt6.uic import loadUi
 from PyQt6.QtCore import QSettings, QTime
+from utils.resource_path import resource_path
 
 from settings_dialog import SettingsDialog
 from analysis_popup import AnalysisPopup
@@ -21,8 +22,7 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
-        ui_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "main_window.ui")
-        loadUi(ui_path, self)
+        loadUi(resource_path("main_window.ui"), self)
 
         self._video_path = None
         self._ai_worker = None
@@ -227,7 +227,7 @@ class MainWindow(QMainWindow):
         from PyQt6.QtGui import QPixmap, QFont
         from PyQt6.QtCore import Qt
 
-        logo_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "icons", "logo.png")
+        logo_path = resource_path("icons", "logo.png")
         text_label = QLabel()
         pixmap = QPixmap(logo_path)
         text_label.setPixmap(pixmap.scaledToHeight(36, Qt.TransformationMode.SmoothTransformation))
@@ -472,7 +472,7 @@ class MainWindow(QMainWindow):
         if self._analysis_popup:
             self._analysis_popup.mark_step1_complete(count)
 
-        self.label_status.setText(f"✅ {count}개 구간 감지됨 — 자막 생성 중...")
+        self.label_status.setText(f"{count}개 구간 감지됨 — 자막 생성 중...")
 
         self._stt_worker = STTWorker(self._video_path, self._segments, self._load_settings())
         self._stt_worker.progress_updated.connect(self.progress_bar.setValue)
@@ -495,7 +495,7 @@ class MainWindow(QMainWindow):
         self._original_segments = [dict(seg) for seg in self._segments]
         self.btn_render.setEnabled(True)
         self.label_status.setText(
-            "✅ 자막 생성 완료 — 오른쪽 목록에서 O / X로 구간을 승인 후 렌더링하세요"
+            "자막 생성 완료 — 편집 구간 목록에서 O / X로 구간을 승인 후 렌더링하세요"
         )
         if self._analysis_popup:
             self._analysis_popup.mark_complete(len(self._segments))
@@ -554,7 +554,7 @@ class MainWindow(QMainWindow):
         self.label_file_path.setText(output_path)
         self._video_player.load(output_path)
 
-        self.label_status.setText("✅ 렌더링 완료 — 결과 영상을 재생해보세요")
+        self.label_status.setText("렌더링 완료 — 결과 영상을 재생해보세요")
 
         original_ms = max((s.get("end", 0) for s in self._segments), default=0)
         edited_ms   = sum(s["end"] - s["start"] for s in self._segments if s.get("keep", True))
@@ -679,7 +679,7 @@ class MainWindow(QMainWindow):
         models = ["tiny", "base", "small", "medium", "large"]
         model_name = models[model_idx] if model_idx < len(models) else "medium"
         self.label_status.setText(
-            f"✅ 설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
+            f"설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
             + (" — AI 분석 시작 버튼을 눌러주세요" if self._video_path else "")
         )
 
