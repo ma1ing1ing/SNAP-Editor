@@ -31,7 +31,7 @@ def _load_silero_vad(log_callback=None):
     return _SILERO_MODEL, _SILERO_UTILS
 
 
-def detect_silence(audio_path, min_silence_seconds=1.0, progress_callback=None, log_callback=None):
+def detect_silence(audio_path, min_silence_seconds=1.0, threshold=0.5, progress_callback=None, log_callback=None):
     """
     오디오 파일에서 음성/무음 구간을 탐지합니다.
     progress_callback은 backend_controller 기준 40~80 사이의 세부 진행률을 전달합니다.
@@ -58,7 +58,7 @@ def detect_silence(audio_path, min_silence_seconds=1.0, progress_callback=None, 
         audio_tensor,
         model,
         sampling_rate=16000,
-        threshold=0.5,
+        threshold=threshold,
         min_silence_duration_ms=int(min_silence_seconds * 1000),
     )
     _emit(progress_callback, 75)
