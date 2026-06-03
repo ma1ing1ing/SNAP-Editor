@@ -193,22 +193,21 @@ class MainWindow(QMainWindow):
 
     def eventFilter(self, obj, event):
         from PyQt6.QtCore import QEvent
-        if obj in (self.video_frame, self._video_player.video_widget) and event.type() == QEvent.Type.Resize:
+        if obj is self.video_frame and event.type() == QEvent.Type.Resize:
             self._apply_video_mask()
         return super().eventFilter(obj, event)
 
     def _apply_video_mask(self):
         from PyQt6.QtGui import QBitmap, QPainter
         from PyQt6.QtCore import Qt
-        for widget in (self.video_frame, self._video_player.video_widget):
-            bmp = QBitmap(widget.size())
-            bmp.fill(Qt.GlobalColor.color0)
-            p = QPainter(bmp)
-            p.setBrush(Qt.GlobalColor.color1)
-            p.setPen(Qt.PenStyle.NoPen)
-            p.drawRoundedRect(widget.rect(), 10, 10)
-            p.end()
-            widget.setMask(bmp)
+        bmp = QBitmap(self.video_frame.size())
+        bmp.fill(Qt.GlobalColor.color0)
+        p = QPainter(bmp)
+        p.setBrush(Qt.GlobalColor.color1)
+        p.setPen(Qt.PenStyle.NoPen)
+        p.drawRoundedRect(self.video_frame.rect(), 10, 10)
+        p.end()
+        self.video_frame.setMask(bmp)
 
     def _setup_title_bar(self):
         from PyQt6.QtWidgets import QVBoxLayout, QFrame, QSizePolicy
@@ -260,7 +259,6 @@ class MainWindow(QMainWindow):
         self.video_frame.setStyleSheet("QFrame { border-radius: 0px; background-color: #000; }")
         self.timeline_frame.setStyleSheet("QFrame { border-radius: 0px; }")
         self.video_frame.installEventFilter(self)
-        self._video_player.video_widget.installEventFilter(self)
 
     def _setup_waveform(self) -> WaveformWidget:
         waveform = WaveformWidget()

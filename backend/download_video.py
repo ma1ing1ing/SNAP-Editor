@@ -1,52 +1,49 @@
+import json
 import os
-import yt_dlp
+import subprocess
+import sys
+
+_PYENV_PYTHON = os.path.expanduser("~/.pyenv/versions/3.10.11/bin/python3.10")
+_HELPER = os.path.join(os.path.dirname(os.path.abspath(__file__)), "download_helper.py")
 
 
 def download_video(url: str, output_dir: str, progress_callback=None) -> str:
-    """
-    yt-dlp로 url을 다운로드하고 저장된 파일 경로를 반환한다.
-    progress_callback(int): 0~100 진행률
-    """
     os.makedirs(output_dir, exist_ok=True)
-    downloaded_path = []
 
-    def _progress_hook(d):
-        if d["status"] == "downloading" and progress_callback:
-            total = d.get("total_bytes") or d.get("total_bytes_estimate")
-            if total:
-                pct = int(d.get("downloaded_bytes", 0) / total * 100)
-                progress_callback(min(pct, 99))
-        elif d["status"] == "finished":
-            downloaded_path.append(d["filename"])
+    python = _PYENV_PYTHON if os.path.isfile(_PYENV_PYTHON) else sys.executable
+    proc = subprocess.Popen(
+        [python, _HELPER, url, output_dir],
+        stdout=subprocess.PIPE,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
 
-    bgutil_server = os.path.expanduser("~/bgutil-ytdlp-pot-provider/server")
-    extractor_args = {}
-    if os.path.isdir(bgutil_server):
-        extractor_args["youtubepot-bgutilscript"] = {"server_home": [bgutil_server]}
+    result_path = None
+    for line in proc.stdout:
+        line = line.strip()
+        if not line:
+            continue
+        try:
+            msg = json.loads(line)
+        except json.JSONDecodeError:
+            continue
 
-    ydl_opts = {
-        "format": "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best",
-        "outtmpl": os.path.join(output_dir, "%(title)s.%(ext)s"),
-        "noplaylist": True,
-        "merge_output_format": "mp4",
-        "cookiesfrombrowser": ("chrome",),
-        "extractor_args": extractor_args,
-        "progress_hooks": [_progress_hook],
-        "quiet": True,
-        "no_warnings": True,
-    }
+        if msg["type"] == "progress" and progress_callback:
+            progress_callback(msg["pct"])
+        elif msg["type"] == "done":
+            result_path = msg["path"]
+        elif msg["type"] == "error":
+            proc.wait()
+            raise RuntimeError(msg["msg"])
 
-    with yt_dlp.YoutubeDL(ydl_opts) as ydl:
-        info = ydl.extract_info(url, download=True)
-        # merge 후 최종 경로
-        final = ydl.prepare_filename(info)
-        if not final.endswith(".mp4"):
-            final = os.path.splitext(final)[0] + ".mp4"
+    proc.wait()
+    if proc.returncode != 0 and result_path is None:
+        raise RuntimeError("다운로드 실패 (알 수 없는 오류)")
 
     if progress_callback:
         progress_callback(100)
 
-    return final
+    return result_path
 
 
 if __name__ == "__main__":
