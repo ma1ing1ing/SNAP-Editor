@@ -107,7 +107,6 @@ hiddenimports = [
 # ── 제외할 모듈 (앱 크기 절감) ─────────────────────────────────────────────
 excludes = [
     "tkinter",
-    "unittest",
     "IPython",
     "jupyter",
     "notebook",
