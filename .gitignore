@@ -45,3 +45,4 @@ bin/ffprobe
 *.tmp
 .env
 DEPLOYMENT_PLAN.md
+CLAUDE.md
