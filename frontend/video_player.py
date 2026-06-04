@@ -52,16 +52,20 @@ class VideoPlayer(QObject):
         if self._placeholder_pixmap.isNull():
             return
 
-        width = max(1, int(self._placeholder.width() * 0.78))
-        height = max(1, int(self._placeholder.height() * 0.78))
-        self._placeholder.setPixmap(
-            self._placeholder_pixmap.scaled(
-                width,
-                height,
-                Qt.AspectRatioMode.KeepAspectRatio,
-                Qt.TransformationMode.SmoothTransformation,
-            )
+        width = max(1, self._placeholder.width())
+        height = max(1, self._placeholder.height())
+
+        target_w = int(width * 0.85)
+        target_h = int(height * 0.85)
+
+        scaled_pixmap = self._placeholder_pixmap.scaled(
+            target_w,
+            target_h,
+            Qt.AspectRatioMode.KeepAspectRatio,
+            Qt.TransformationMode.SmoothTransformation,
         )
+
+        self._placeholder.setPixmap(scaled_pixmap)
 
     def _on_position_changed(self, position: int):
         if self._is_seeking:

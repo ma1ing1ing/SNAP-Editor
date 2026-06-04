@@ -142,7 +142,7 @@ exe = EXE(
     upx=False,
     console=False,
     disable_windowed_traceback=False,
-    icon=os.path.join(frontend_dir, "icons", "app.png"),
+    icon=os.path.join(frontend_dir, "icons", "SNAP-Editor.icns"),
 )
 
 coll = COLLECT(
@@ -158,7 +158,7 @@ coll = COLLECT(
 app = BUNDLE(
     coll,
     name="SNAP-Editor.app",
-    icon=os.path.join(frontend_dir, "icons", "app.png"),
+    icon=os.path.join(frontend_dir, "icons", "SNAP-Editor.icns"),
     bundle_identifier="com.snap.editor",
     info_plist={
         "CFBundleShortVersionString": "1.0.0",
