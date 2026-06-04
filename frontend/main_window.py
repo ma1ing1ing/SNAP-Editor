@@ -237,7 +237,7 @@ class MainWindow(QMainWindow):
         logo_path = resource_path("icons", "logo.png")
         text_label = QLabel()
         pixmap = QPixmap(logo_path)
-        text_label.setPixmap(pixmap.scaledToHeight(36, Qt.TransformationMode.SmoothTransformation))
+        text_label.setPixmap(pixmap.scaledToHeight(40, Qt.TransformationMode.SmoothTransformation))
         text_label.setStyleSheet("background: transparent;")
 
         center_layout = QHBoxLayout()
@@ -509,7 +509,7 @@ class MainWindow(QMainWindow):
             self._analysis_popup.mark_complete(len(self._segments))
 
     def _on_stt_error(self, message: str):
-        self.label_status.setText("⚠ 자막 생성 실패 — 구간 목록은 유지됩니다")
+        self.label_status.setText(f"⚠ 자막 생성 실패: {message}")
         if self._analysis_popup:
             self._analysis_popup.mark_complete(len(self._segments))
 
@@ -529,11 +529,16 @@ class MainWindow(QMainWindow):
         if self._render_worker and self._render_worker.isRunning():
             return
 
+        import re
+        raw_name = os.path.splitext(os.path.basename(self._video_path))[0]
+        safe_name = re.sub(r'[\\/:*?"<>|⧸]', '_', raw_name) + "_edited.mp4"
+        default_dir = os.path.expanduser("~/Desktop")
         output_path, _ = QFileDialog.getSaveFileName(
             self,
             "렌더링 결과 저장",
-            os.path.splitext(self._video_path)[0] + "_edited.mp4",
+            os.path.join(default_dir, safe_name),
             "Videos (*.mp4)",
+            options=QFileDialog.Option.DontUseNativeDialog,
         )
         if not output_path:
             return

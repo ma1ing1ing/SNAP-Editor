@@ -149,5 +149,7 @@ class STTWorker(QThread):
             self.stt_complete.emit(updated)
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self.error_occurred.emit(str(e))
             

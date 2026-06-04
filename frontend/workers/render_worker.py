@@ -56,4 +56,6 @@ class RenderWorker(QThread):
             self.render_complete.emit(final_result, updated_segments)
 
         except Exception as e:
+            import traceback
+            traceback.print_exc()
             self.error_occurred.emit(str(e))
