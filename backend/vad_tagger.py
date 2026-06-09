@@ -109,6 +109,3 @@ def detect_and_tag_silence(audio_path):
 
     return final_silence_seconds
 
-# 단독 테스트용 실행 코드
-# if __name__ == "__main__":
-#     detect_and_tag_silence("temp_audio.wav")

@@ -128,5 +128,3 @@ def detect_silence(audio_path, min_silence_seconds=1.0, threshold=0.5, progress_
 if __name__ == "__main__":
     video_file = "Data/test_video.mp4"
     silence_list, detailed_json_data = detect_silence(video_file)
-    print("프론트로 보낼 튜플 리스트:", silence_list)
-    print("\n상세 JSON 데이터:", json.dumps(detailed_json_data, ensure_ascii=False, indent=2))
