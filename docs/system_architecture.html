@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <title>SNAP-Editor 시스템 구성도</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: #F7F8FA;
+      color: #1A1A2E;
+      padding: 40px 24px 80px;
+    }
+
+    header {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+    header h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+    }
+    header h1 span { color: #3B82F6; }
+    header p {
+      margin-top: 10px;
+      font-size: 0.95rem;
+      color: #6B7280;
+    }
+
+    .section {
+      max-width: 1100px;
+      margin: 0 auto 64px;
+    }
+    .section-header {
+      display: flex;
+      align-items: baseline;
+      gap: 12px;
+      margin-bottom: 20px;
+      border-left: 4px solid #3B82F6;
+      padding-left: 14px;
+    }
+    .section-header h2 {
+      font-size: 1.25rem;
+      font-weight: 700;
+    }
+    .section-header p {
+      font-size: 0.85rem;
+      color: #6B7280;
+    }
+
+    .card {
+      background: #fff;
+      border-radius: 14px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.07);
+      padding: 32px 24px;
+      overflow-x: auto;
+    }
+
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+
+    /* legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 20px;
+      padding-top: 16px;
+      border-top: 1px solid #E5E7EB;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.78rem;
+      color: #374151;
+    }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 3px;
+      flex-shrink: 0;
+    }
+
+    /* field table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin-top: 20px;
+    }
+    th {
+      background: #F3F4F6;
+      padding: 8px 12px;
+      text-align: left;
+      font-weight: 600;
+      border-bottom: 2px solid #E5E7EB;
+    }
+    td {
+      padding: 7px 12px;
+      border-bottom: 1px solid #F3F4F6;
+    }
+    code {
+      background: #F3F4F6;
+      padding: 1px 5px;
+      border-radius: 4px;
+      font-family: "JetBrains Mono", "Fira Code", monospace;
+      font-size: 0.82rem;
+    }
+
+    /* stack table */
+    .stack-table { margin-top: 0; }
+
+    footer {
+      text-align: center;
+      font-size: 0.78rem;
+      color: #9CA3AF;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1><span>SNAP</span>-Editor 시스템 구성도</h1>
+  <p>Smart Neat Automated Processing — 영상 무음 자동 제거 · AI 자막 생성 도구</p>
+</header>
+
+<!-- ── 블록 A: 시나리오 흐름 ──────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <h2>📋 사용 시나리오 흐름</h2>
+    <p>입력 → 분석 → 편집 → 렌더링 전체 파이프라인</p>
+  </div>
+  <div class="card">
+    <div class="mermaid">
+flowchart TD
+    U_FILE(["\🗂 로컬 파일 선택\nMainWindow._open_file"])
+    U_URL(["\🔗 URL 붙여넣기\nMainWindow._open_url"])
+
+    S0["\⬇ Step 0 · 영상 다운로드\nDownloadWorker\ndownload_video · yt-dlp"]
+    V_READY["(입력 영상 준비)\n.mp4 / .mov"]
+
+    S1["\🔊 Step 1 · 오디오 추출 + 무음 감지\nAIWorker → BackendController\nextract_audio  ·  detect_silence"]
+    A_WAV[("audio.wav\n16kHz 모노")]
+    A_JSON[("silence.json\n무음 구간 좌표")]
+
+    S2["\🗣 Step 2 · 음성 인식 · 자막 생성\nSTTWorker → BackendController\ntranscribe_video_to_srt\n_assign_stt_to_segments"]
+    AI_W{{"\🤖 stable-whisper\nKorean STT"}}
+    A_SRT[("subtitle.srt\n자막 타임라인")]
+    A_SEG[("segments\nkeep · text · start · end")]
+
+    U_EDIT(["\✏️ 구간 편집 · 자막 수정\nMainWindow  ·  list_segments 테이블"])
+
+    S3["\🎞 Step 3 · 최종 렌더링\nRenderWorker → BackendController\ncreate_final_edited_video\nadd_subtitles_to_video"]
+    AI_F{{"\⚙ FFmpeg\nH.264 인코딩"}}
+    OUT[("🎉 final_edited.mp4\n무음 제거 + 자막 병합")]
+
+    U_FILE --> V_READY
+    U_URL  --> S0 --> V_READY
+    V_READY --> S1
+    S1 --> A_WAV & A_JSON
+    A_WAV & A_JSON --> S2
+    S2 --> AI_W
+    AI_W --> A_SRT & A_SEG
+    A_SEG --> U_EDIT
+    U_EDIT --> S3
+    S3 --> AI_F
+    AI_F --> OUT
+
+    classDef userAction fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
+    classDef pipeline   fill:#DCFCE7,stroke:#16A34A,color:#14532D
+    classDef artifact   fill:#F3F4F6,stroke:#9CA3AF,color:#374151
+    classDef aiModel    fill:#FEF9C3,stroke:#CA8A04,color:#713F12
+
+    class U_FILE,U_URL,U_EDIT userAction
+    class S0,S1,S2,S3 pipeline
+    class V_READY,A_WAV,A_JSON,A_SRT,A_SEG,OUT artifact
+    class AI_W,AI_F aiModel
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#DBEAFE;border:1.5px solid #2563EB"></div> 사용자 액션</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#DCFCE7;border:1.5px solid #16A34A"></div> 파이프라인 단계</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FEF9C3;border:1.5px solid #CA8A04"></div> AI 모델</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#F3F4F6;border:1.5px solid #9CA3AF"></div> 중간 산출물</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 블록 B: 컴포넌트 레이어 ────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <h2>🏗 컴포넌트 레이어 구조</h2>
+    <p>Frontend → Workers → BackendController → Backend 4계층 아키텍처</p>
+  </div>
+  <div class="card">
+    <div class="mermaid">
+flowchart LR
+    subgraph FE ["\🖥  Frontend  ·  PyQt6"]
+        MW["MainWindow\n파일 선택 · 구간 편집 · 상태 표시"]
+        VP["VideoPlayer\n영상 미리보기 · 재생 제어"]
+        WW["WaveformWidget\n파형 시각화 · 무음 색상"]
+        SD["SettingsDialog\nVAD 감도 · Whisper 모델"]
+        MW --- VP & WW & SD
+    end
+
+    subgraph WK ["\⚙  Workers  ·  QThread 비동기"]
+        DW["DownloadWorker\nURL → MP4"]
+        AW["AIWorker\nStep 1 · 진폭 추출"]
+        SW["STTWorker\nStep 2 · segments 병합"]
+        RW["RenderWorker\nStep 3 · 통계 업데이트"]
+    end
+
+    subgraph BC ["\🎛  BackendController  ·  파이프라인 조율"]
+        BC1["run_step1_extract_and_vad\n오디오 추출 + VAD"]
+        BC2["run_step2_stt\nSTT + SRT 생성"]
+        BC3["run_final_render\n무음 제거 + 자막 병합"]
+        BC1 --> BC2 --> BC3
+    end
+
+    subgraph BE ["\🔧  Backend Modules"]
+        EA["extract_audio\nFFmpeg → 16kHz WAV"]
+        DS["detect_silence\nSilero VAD → silence.json"]
+        TR["transcriber\nstable-whisper → .srt"]
+        ED["editor\nFFmpeg → MP4 + 자막"]
+        DV["download_video\nyt-dlp + 쿠키 Fallback"]
+    end
+
+    MW -->|"pyqtSignal\nstart/stop"| DW & AW & SW & RW
+    DW -->|"download_complete\n(path)"| MW
+    AW -->|"waveform_ready\nanalysis_complete"| MW
+    SW -->|"stt_complete\n(segments)"| MW
+    RW -->|"render_complete\n(path, segments)"| MW
+
+    AW -->|"progress/log cb"| BC1
+    SW -->|"progress/log cb"| BC2
+    RW -->|"progress/log cb"| BC3
+    DW --> DV
+
+    BC1 --> EA & DS
+    BC2 --> TR
+    BC3 --> ED
+
+    classDef feStyle fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
+    classDef wkStyle fill:#EDE9FE,stroke:#7C3AED,color:#4C1D95
+    classDef bcStyle fill:#DCFCE7,stroke:#16A34A,color:#14532D
+    classDef beStyle fill:#FEF9C3,stroke:#CA8A04,color:#713F12
+
+    class MW,VP,WW,SD feStyle
+    class DW,AW,SW,RW wkStyle
+    class BC1,BC2,BC3 bcStyle
+    class EA,DS,TR,ED,DV beStyle
+    </div>
+
+    <div class="legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#DBEAFE;border:1.5px solid #2563EB"></div> Frontend (PyQt6)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#EDE9FE;border:1.5px solid #7C3AED"></div> Workers (QThread)</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#DCFCE7;border:1.5px solid #16A34A"></div> BackendController</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#FEF9C3;border:1.5px solid #CA8A04"></div> Backend Modules</div>
+    </div>
+  </div>
+</section>
+
+<!-- ── 블록 C: 데이터 상태 변화 ────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <h2>📦 데이터 상태 변화</h2>
+    <p>segments 객체가 파이프라인을 거치며 변화하는 과정</p>
+  </div>
+  <div class="card">
+    <div class="mermaid">
+flowchart LR
+    RAW[("🎬 원본 영상\n.mp4")]
+
+    SEG1["segments v1\n─────────────\nstart · end  (ms)\nkeep  True/False\ntext  비어있음"]
+
+    SEG2["segments v2\n─────────────\nstart · end  (ms)\nkeep  True/False\ntext  STT 결과\nwords  단어 타임스탬프"]
+
+    SEG3([" segments v3  ✏️\n─────────────\nstart · end  수정 가능\nkeep  토글 가능\ntext  수동 교정 가능"])
+
+    SIL["silence_segments\n─────────────\nkeep=False 구간만\n단위: 초 변환"]
+
+    FINAL[("🎉 final_edited.mp4\n+ final_edited.srt\n자막 소프트 트랙")]
+
+    RAW      -->|"extract_audio\ndetect_silence"| SEG1
+    SEG1     -->|"transcribe_video_to_srt\n_assign_stt_to_segments"| SEG2
+    SEG2     -->|"사용자 keep 토글\n자막 텍스트 수정"| SEG3
+    SEG3     -->|"keep=False 필터\n초 단위 변환"| SIL
+    SIL      -->|"create_final_edited_video\nadd_subtitles_to_video\n+ stretch_ratio 싱크 보정"| FINAL
+
+    classDef fileNode fill:#F3F4F6,stroke:#9CA3AF,color:#374151
+    classDef segNode  fill:#E0E7FF,stroke:#4338CA,color:#1E1B4B
+    classDef userNode fill:#DBEAFE,stroke:#2563EB,color:#1E3A8A
+
+    class RAW,FINAL fileNode
+    class SEG1,SEG2,SIL segNode
+    class SEG3 userNode
+    </div>
+
+    <table>
+      <thead>
+        <tr><th>필드</th><th>타입</th><th>설명</th><th>채워지는 시점</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><code>start</code></td><td>int (ms)</td><td>구간 시작 시각</td><td>Step 1</td></tr>
+        <tr><td><code>end</code></td><td>int (ms)</td><td>구간 종료 시각</td><td>Step 1</td></tr>
+        <tr><td><code>keep</code></td><td>bool</td><td>True=보존(초록) · False=제거(빨강)</td><td>Step 1, 사용자 편집</td></tr>
+        <tr><td><code>text</code></td><td>str</td><td>STT 자막 텍스트</td><td>Step 2</td></tr>
+        <tr><td><code>words</code></td><td>list</td><td>단어별 타임스탬프 (불용어 강조용)</td><td>Step 2</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── 기술 스택 ──────────────────────────────────────── -->
+<section class="section">
+  <div class="section-header">
+    <h2>⚙ 기술 스택</h2>
+  </div>
+  <div class="card">
+    <table class="stack-table">
+      <thead>
+        <tr><th>레이어</th><th>기술</th><th>역할</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>GUI</td><td><code>PyQt6</code></td><td>QMainWindow · QThread · pyqtSignal</td></tr>
+        <tr><td>STT</td><td><code>stable-whisper</code></td><td>한국어 음성 인식, word timestamps</td></tr>
+        <tr><td>VAD</td><td><code>Silero VAD</code></td><td>torch.hub, 감도 0.0–1.0 조절 가능</td></tr>
+        <tr><td>영상 처리</td><td><code>FFmpeg</code> + <code>ffmpeg-python</code></td><td>H.264 CRF 인코딩, 소프트 자막 트랙</td></tr>
+        <tr><td>다운로드</td><td><code>yt-dlp</code></td><td>YouTube 403 우회 (android client + 쿠키 fallback)</td></tr>
+        <tr><td>오디오</td><td><code>librosa</code> · <code>torchaudio</code></td><td>16kHz 리샘플, RMS 진폭 추출</td></tr>
+        <tr><td>배포</td><td><code>PyInstaller</code> + <code>static-ffmpeg</code></td><td>macOS .app 번들, frozen 환경 대응</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<footer>SNAP-Editor · generated by Claude Code</footer>
+
+<script>
+  mermaid.initialize({
+    startOnLoad: true,
+    theme: 'default',
+    flowchart: { curve: 'basis', padding: 20 },
+    themeVariables: {
+      fontFamily: '-apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: '14px',
+    }
+  });
+</script>
+</body>
+</html>
