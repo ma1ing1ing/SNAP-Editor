@@ -165,14 +165,7 @@ class AIWorker(QThread):
             self.status_changed.emit("파형 데이터 추출 중...")
 
             silence_list = result["silence_list"]
-            print(f"\n[DEBUG] silence_list ({len(silence_list)}개):")
-            for s in silence_list:
-                print(f"  silence {s['start']:.2f}s ~ {s['end']:.2f}s ({s['end']-s['start']:.2f}s)")
             segments = _convert_to_segments(silence_list, duration_ms)
-            print(f"\n[DEBUG] segments ({len(segments)}개):")
-            for s in segments:
-                tag = "KEEP" if s["keep"] else "REMOVE"
-                print(f"  {tag} {s['start']}ms ~ {s['end']}ms")
             amplitudes = _extract_amplitudes(temp_audio, duration_ms)
 
         self.progress_updated.emit(100)
