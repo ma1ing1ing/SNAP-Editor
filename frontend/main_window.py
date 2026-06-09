@@ -389,23 +389,19 @@ class MainWindow(QMainWindow):
         self._download_worker.start()
 
     def _on_download_progress(self, pct: int):
-        # progressBar가 있으면 업데이트, 없으면 label_status만 사용
-        if hasattr(self, "progressBar"):
-            self.progressBar.setValue(pct)
+        self.progress_bar.setValue(pct)
 
     def _on_download_complete(self, path: str):
         self.btn_open_file.setEnabled(True)
         self.btn_open_url.setEnabled(True)
-        if hasattr(self, "progressBar"):
-            self.progressBar.setValue(0)
+        self.progress_bar.setValue(0)
         self._apply_video_path(path)
         self._start_analysis()
 
     def _on_download_error(self, msg: str):
         self.btn_open_file.setEnabled(True)
         self.btn_open_url.setEnabled(True)
-        if hasattr(self, "progressBar"):
-            self.progressBar.setValue(0)
+        self.progress_bar.setValue(0)
         self.label_status.setText(f"⚠ 다운로드 실패: {msg}")
         QMessageBox.warning(self, "다운로드 실패", msg)
 
@@ -687,12 +683,12 @@ class MainWindow(QMainWindow):
 
     def _on_settings_saved(self):
         s = QSettings("SNAP", "Editor")
-        threshold = s.value("silence_threshold", 0.5)
+        min_silence_sec = int(s.value("min_silence_ms", 500)) / 1000
         model_idx = int(s.value("whisper_model", 3))
         models = ["tiny", "base", "small", "medium", "large"]
         model_name = models[model_idx] if model_idx < len(models) else "medium"
         self.label_status.setText(
-            f"설정 저장됨 (무음 기준: {threshold}초 / Whisper: {model_name})"
+            f"설정 저장됨 (무음 기준: {min_silence_sec:.1f}초 / Whisper: {model_name})"
             + (" — 편집 시작 버튼을 눌러주세요" if self._video_path else "")
         )
 
@@ -781,7 +777,7 @@ class MainWindow(QMainWindow):
             self._segments[row + 1]["start"] = orig["end"]
             self._update_table_time(row + 1)
 
-        duration_ms = max(s["end"] for s in self._segments)
+        duration_ms = max((s["end"] for s in self._segments), default=0)
         self._waveform.set_segments(self._segments, duration_ms)
 
     def _merge_segments(self):
@@ -869,7 +865,7 @@ class MainWindow(QMainWindow):
         seg["end"]   = new_end
         self._update_table_time(row)
 
-        duration_ms = max(s["end"] for s in self._segments)
+        duration_ms = max((s["end"] for s in self._segments), default=0)
         self._waveform.set_segments(self._segments, duration_ms)
 
     def _update_table_time(self, row: int):

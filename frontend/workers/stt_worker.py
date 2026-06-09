@@ -4,7 +4,7 @@ import tempfile
 from PyQt6.QtCore import QThread, pyqtSignal
 
 
-def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict]:
+def _assign_stt_to_segments(segments: list[dict], stt_result: dict, min_silence_ms: int = 500) -> list[dict]:
     """
     STT 문장을 기준 단위로 구간 재구성. (Timeline Sweep 방식)
     - 1순위: STT 문장 (전체 삽입, 내부에 겹친 무음은 무시)
@@ -102,7 +102,37 @@ def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict
         })
         cursor = segment_end
 
-    return result
+    # 0ms 이하 구간 제거 + min_silence_ms 미만 무음 → 발화로 전환
+    filtered = []
+    for seg in result:
+        if seg["end"] <= seg["start"]:
+            continue
+        if not seg.get("keep", True) and (seg["end"] - seg["start"]) < min_silence_ms:
+            seg = {**seg, "keep": True}
+        filtered.append(seg)
+
+    # 텍스트 없는 keep=True 구간 → 앞 keep=True 구간에 병합 (backward pass)
+    merged = []
+    for seg in filtered:
+        if (seg.get("keep", True) and not seg.get("text", "").strip()
+                and merged and merged[-1].get("keep", True)):
+            merged[-1] = {**merged[-1], "end": seg["end"]}
+        else:
+            merged.append(seg)
+
+    # 앞이 silence라 backward 병합 못 한 빈 구간 → 뒤 keep=True 구간에 병합 (forward pass)
+    result2 = []
+    i = 0
+    while i < len(merged):
+        seg = merged[i]
+        if (seg.get("keep", True) and not seg.get("text", "").strip()
+                and i + 1 < len(merged) and merged[i + 1].get("keep", True)):
+            merged[i + 1] = {**merged[i + 1], "start": seg["start"]}
+            i += 1
+            continue
+        result2.append(seg)
+        i += 1
+    return result2
 
 
 class STTWorker(QThread):
@@ -144,7 +174,8 @@ class STTWorker(QThread):
                     self._video_path, srt_path, whisper_model
                 )
 
-            updated = _assign_stt_to_segments(self._segments, stt_result)
+            min_silence_ms = int(self._settings.get("min_silence_ms", 500))
+            updated = _assign_stt_to_segments(self._segments, stt_result, min_silence_ms)
             self.status_changed.emit("자막 생성 완료")
             self.stt_complete.emit(updated)
 
