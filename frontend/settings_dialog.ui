@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>458</height>
+    <height>400</height>
    </rect>
   </property>
   <property name="minimumSize">
@@ -158,39 +158,7 @@
         </item>
        </layout>
       </item>
-      <item>
-       <layout class="QHBoxLayout" name="layout_stopword">
-        <item>
-         <widget class="QLabel" name="label_stopword_mode">
-          <property name="text">
-           <string>불용어 필터 강도</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QComboBox" name="combo_stopword_mode">
-          <property name="currentIndex">
-           <number>1</number>
-          </property>
-          <item>
-           <property name="text">
-            <string>light</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>default</string>
-           </property>
-          </item>
-          <item>
-           <property name="text">
-            <string>aggressive</string>
-           </property>
-          </item>
-         </widget>
-        </item>
-       </layout>
-      </item>
+
      </layout>
     </widget>
    </item>

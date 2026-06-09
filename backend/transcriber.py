@@ -68,6 +68,7 @@ def transcribe_video_to_srt(
             language="ko",
             word_timestamps=True,
             vad=True,
+            initial_prompt="안녕하세요. 다음은 한국어 대화입니다. 문장 끝에는 마침표나 물음표를 사용합니다.",
         )
     finally:
         transcribe_progress.set()

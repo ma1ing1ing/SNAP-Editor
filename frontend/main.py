@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import sys
 
@@ -26,6 +27,7 @@ from main_window import MainWindow
 
 
 if __name__ == "__main__":
+    multiprocessing.freeze_support()
     app = QApplication(sys.argv)
     window = MainWindow()
     window.show()

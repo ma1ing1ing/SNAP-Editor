@@ -98,7 +98,7 @@ def _assign_stt_to_segments(segments: list[dict], stt_result: dict) -> list[dict
             "start": cursor,
             "end": segment_end,
             "text": "",
-            "keep": False  # 빈 텍스트 구간(Gap)은 기본적으로 REMOVE(✗) 처리
+            "keep": True  # VAD 무음도 STT도 아닌 갭은 발화 연속으로 유지 (Whisper 경계 오차 보정)
         })
         cursor = segment_end
 

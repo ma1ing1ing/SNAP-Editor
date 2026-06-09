@@ -90,11 +90,11 @@ def create_final_edited_video(video_path, silence_segments, output_file="./backe
             joined, 
             output_file,
             **{
-                'c:v': 'libx264',  # H.264 비디오 코덱
-                'crf': 23,         # 화질 옵션 (0~51, 낮을수록 고화질. 23은 기본값)
-                'preset': 'ultrafast',  # 인코딩 속도 최우선
-                'c:a': 'aac',      # 오디오 코덱
-                'b:a': '192k'      # 오디오 비트레이트
+                'c:v': 'libx264',
+                'crf': 18,      # 0~51, 낮을수록 고화질 (18 = 시각적 무손실에 가까운 기준값)
+                'preset': 'medium',  # ultrafast 대비 동일 CRF에서 훨씬 나은 화질
+                'c:a': 'aac',
+                'b:a': '192k',
             }
         )
         
