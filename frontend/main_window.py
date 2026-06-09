@@ -31,6 +31,7 @@ class MainWindow(QMainWindow):
         self._download_worker = None
         self._segments: list = []
         self._original_segments: list = []
+        self._editing_start_ms: int = -1
         self._analysis_popup: Optional[AnalysisPopup] = None
 
         self._video_player = VideoPlayer(self.video_frame)
@@ -87,7 +88,7 @@ class MainWindow(QMainWindow):
         btn_merge.setFixedHeight(22)
         btn_merge.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
 
-        btn_add = QPushButton("+ 구간 추가")
+        btn_add = QPushButton("구간 분할")
         btn_add.setEnabled(False)
         btn_add.setFixedHeight(22)
         btn_add.setStyleSheet(small_btn_style.format(fg="#1c1c1e"))
@@ -722,6 +723,7 @@ class MainWindow(QMainWindow):
             self._video_player.seek(seg.get('start', 0))
 
         seg = self._segments[row]
+        self._editing_start_ms = seg["start"]  # row 인덱스 대신 시작 시간으로 추적
         text = seg.get("text", "")
         self.text_subtitle_edit.setPlainText(text)
         self.text_subtitle_edit.setEnabled(True)
@@ -738,7 +740,11 @@ class MainWindow(QMainWindow):
     def _on_subtitle_confirm(self):
         from PyQt6.QtWidgets import QApplication
         QApplication.inputMethod().commit()
-        row = self.list_segments.currentRow()
+        editing_start = getattr(self, "_editing_start_ms", -1)
+        row = next(
+            (i for i, s in enumerate(self._segments) if s["start"] == editing_start),
+            self.list_segments.currentRow()
+        )
         if 0 <= row < len(self._segments):
             new_text = self.text_subtitle_edit.toPlainText()
             self._segments[row]["text"] = new_text
@@ -807,39 +813,32 @@ class MainWindow(QMainWindow):
         self.list_segments.selectRow(rows[0])
 
     def _show_add_segment_menu(self):
-        from PyQt6.QtWidgets import QMenu
         rows = self._get_selected_rows()
         if len(rows) != 1:
             return
-        menu = QMenu(self)
-        menu.addAction("앞에 구간 추가", lambda: self._insert_segment(rows[0], before=True))
-        menu.addAction("뒤에 구간 추가", lambda: self._insert_segment(rows[0], before=False))
-        menu.exec(self._btn_add.mapToGlobal(self._btn_add.rect().bottomLeft()))
+        self._split_segment(rows[0])
 
-    def _insert_segment(self, row: int, before: bool):
-        segs = self._segments
-        if before:
-            ref_end   = segs[row]["start"]
-            ref_start = segs[row - 1]["end"] if row > 0 else 0
-            new_start = max(ref_start, ref_end - 1000)
-            new_end   = ref_end
-        else:
-            ref_start = segs[row]["end"]
-            ref_end   = segs[row + 1]["start"] if row + 1 < len(segs) else ref_start + 1000
-            new_start = ref_start
-            new_end   = min(ref_end, ref_start + 1000)
+    def _split_segment(self, row: int):
+        seg = self._segments[row]
+        mid = (seg["start"] + seg["end"]) // 2
 
-        if new_start >= new_end:
-            QMessageBox.warning(self, "추가 불가",
-                                "인접 구간 사이에 여유 시간이 없어 구간을 추가할 수 없습니다.")
+        if mid <= seg["start"] or mid >= seg["end"]:
+            QMessageBox.warning(self, "분할 불가", "구간이 너무 짧아 분할할 수 없습니다.")
             return
 
-        new_seg = {"start": new_start, "end": new_end, "keep": True, "text": ""}
-        insert_idx = row if before else row + 1
-        self._segments.insert(insert_idx, new_seg)
+        words = seg.get("text", "").split()
+        half = len(words) // 2
+        text_a = " ".join(words[:half])
+        text_b = " ".join(words[half:])
 
+        seg_a = {"start": seg["start"], "end": mid,        "keep": seg["keep"], "text": text_a}
+        seg_b = {"start": mid,          "end": seg["end"], "keep": seg["keep"], "text": text_b}
+
+        self._segments[row:row + 1] = [seg_a, seg_b]
         self._populate_segments(self._segments)
-        self.list_segments.selectRow(insert_idx)
+        duration_ms = max((s["end"] for s in self._segments), default=0)
+        self._waveform.set_segments(self._segments, duration_ms)
+        self.list_segments.selectRow(row + 1)
 
     def _apply_time_edit(self, row: int, new_start: int, new_end: int):
         seg = self._segments[row]
