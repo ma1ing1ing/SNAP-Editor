@@ -22,25 +22,25 @@ flowchart TD
     V_READY[(🎬 입력 영상\n.mp4 / .mov)]
 
     %% ── Step 1: 오디오 추출 + VAD ─────────────────────
-    S1[🔊 Step 1 · 오디오 추출 + 무음 감지\nAIWorker → BackendController\nextract_audio · detect_silence]
+    S1[🔊 Step 1 · 오디오 추출 + 무음 감지\nAIWorker → BackendController\nextract_audio · detect_silence\nSilero VAD]
     A_WAV[(🎵 audio.wav\n16kHz 모노)]
     A_JSON[(📄 silence.json\n무음 구간 좌표)]
 
     %% ── Step 2: STT 자막 생성 ─────────────────────────
     S2[🗣 Step 2 · 음성 인식 · 자막 생성\nSTTWorker → BackendController\ntranscribe_video_to_srt\n_assign_stt_to_segments]
     AI_WHISPER{{🤖 stable-whisper\nKorean STT}}
-    A_SRT[(📝 subtitle.srt\n자막 타임라인)]
-    A_SEG[(📦 segments\nkeep·text·start·end)]
+    A_SRT[(📝 subtitle.srt\n참고용 자막 파일)]
+    A_SEG[(📦 segments v2\nkeep·text·start·end)]
 
     %% ── 편집 ──────────────────────────────────────────
     U_EDIT([✏️ 구간 편집 · 자막 수정\nMainWindow\nlist_segments 테이블])
 
     %% ── Step 3: 렌더링 ────────────────────────────────
-    S3[🎞 Step 3 · 최종 렌더링\nRenderWorker → BackendController\ncreate_final_edited_video\nadd_subtitles_to_video]
+    S3[🎞 Step 3 · 최종 렌더링\nRenderWorker → BackendController\ncreate_final_edited_video\nadd_subtitles_to_video\nSRT 재생성 + stretch_ratio 싱크 보정]
     AI_FFMPEG{{⚙ FFmpeg\nH.264 인코딩}}
 
     %% ── 출력 ──────────────────────────────────────────
-    OUT_MP4[(🎉 final_edited.mp4\n무음 제거 + 자막 병합)]
+    OUT_MP4[(🎉 final_edited.mp4\n무음 제거 + 소프트 자막 트랙 병합)]
 
     %% ── 흐름 연결 ─────────────────────────────────────
     U_FILE --> V_READY
@@ -50,12 +50,13 @@ flowchart TD
     S1 --> A_WAV & A_JSON
 
     A_WAV & A_JSON --> S2
+    V_READY -.->|원본 영상 직접 참조| S2
     S2 --> AI_WHISPER
     AI_WHISPER --> A_SRT & A_SEG
 
     A_SEG --> U_EDIT
 
-    U_EDIT --> S3
+    U_EDIT -->|편집된 segments| S3
     S3 --> AI_FFMPEG
     AI_FFMPEG --> OUT_MP4
 
@@ -166,7 +167,7 @@ flowchart LR
     SILENCE["🔇 silence_segments\nkeep=False 구간만 추출\n단위: 초 변환"]
 
     %% ── 최종 출력 ─────────────────────────────────────
-    FINAL[(🎉 final_edited.mp4\n+ final_edited.srt\n자막 소프트 트랙 포함)]
+    FINAL[(🎉 final_edited.mp4\n소프트 자막 트랙 포함\n(mov_text 포맷))]
 
     %% ── 흐름 ──────────────────────────────────────────
     RAW -->|"extract_audio\n+detect_silence"| WAV

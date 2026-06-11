@@ -134,14 +134,14 @@ exe = EXE(
     a.scripts,
     [],
     exclude_binaries=True,
-    name="SNAP-Editor",
+    name="SNAP",
     debug=False,
     bootloader_ignore_signals=False,
     strip=False,
     upx=False,
     console=False,
     disable_windowed_traceback=False,
-    icon=os.path.join(frontend_dir, "icons", "SNAP-Editor.icns"),
+    icon=os.path.join(frontend_dir, "icons", "SNAP.icns"),
 )
 
 coll = COLLECT(
@@ -151,13 +151,13 @@ coll = COLLECT(
     a.datas,
     strip=False,
     upx=False,
-    name="SNAP-Editor",
+    name="SNAP",
 )
 
 app = BUNDLE(
     coll,
-    name="SNAP-Editor.app",
-    icon=os.path.join(frontend_dir, "icons", "SNAP-Editor.icns"),
+    name="SNAP.app",
+    icon=os.path.join(frontend_dir, "icons", "SNAP.icns"),
     bundle_identifier="com.snap.editor",
     info_plist={
         "CFBundleShortVersionString": "1.0.0",

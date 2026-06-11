@@ -331,7 +331,7 @@ class MainWindow(QMainWindow):
         # 자막 수정 확인
         self.btn_subtitle_confirm.clicked.connect(self._on_subtitle_confirm)
 
-        # 구간 병합 / Reset / 구간 추가
+        # 구간 병합 / Reset / 구간 분할
         self._btn_merge.clicked.connect(self._merge_segments)
         self._btn_reset.clicked.connect(self._reset_segment)
         self._btn_add.clicked.connect(self._show_add_segment_menu)
