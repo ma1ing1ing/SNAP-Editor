@@ -268,9 +268,9 @@ class MainWindow(QMainWindow):
         )
         self.label_file_path.setMinimumWidth(0)
 
-        # label_status: 긴 상태 메시지가 하단 바를 늘리지 않도록
+        # label_status: 긴 상태 메시지가 하단 바를 늘리지 않도록 (Preferred + minWidth=0)
         self.label_status.setSizePolicy(
-            QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Preferred
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred
         )
         self.label_status.setMinimumWidth(0)
 
