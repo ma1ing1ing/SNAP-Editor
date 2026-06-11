@@ -22,6 +22,7 @@ def _setup_ffmpeg_path():
 
 _setup_ffmpeg_path()
 
+from PyQt6.QtGui import QColor, QPalette
 from PyQt6.QtWidgets import QApplication
 from main_window import MainWindow
 
@@ -29,6 +30,10 @@ from main_window import MainWindow
 if __name__ == "__main__":
     multiprocessing.freeze_support()
     app = QApplication(sys.argv)
+    app.setStyle("macos")
+    palette = app.palette()
+    palette.setColor(QPalette.ColorRole.Window, QColor("white"))
+    app.setPalette(palette)
     window = MainWindow()
     window.show()
     sys.exit(app.exec())
