@@ -3,7 +3,7 @@ from PyQt6.QtGui import QPixmap
 from utils.resource_path import resource_path
 from PyQt6.QtMultimedia import QMediaPlayer, QAudioOutput
 from PyQt6.QtMultimediaWidgets import QVideoWidget
-from PyQt6.QtWidgets import QLabel, QStackedLayout
+from PyQt6.QtWidgets import QLabel, QSizePolicy, QStackedLayout
 
 
 class VideoPlayer(QObject):
@@ -30,6 +30,8 @@ class VideoPlayer(QObject):
 
         self._video_widget = QVideoWidget()
         self._video_widget.setAttribute(Qt.WidgetAttribute.WA_NativeWindow, True)
+        # sizeHint()가 원본 해상도를 반환해 창이 늘어나는 현상 방지
+        self._video_widget.setSizePolicy(QSizePolicy.Policy.Ignored, QSizePolicy.Policy.Ignored)
         self._player.setVideoOutput(self._video_widget)
 
         self._stack = QStackedLayout()

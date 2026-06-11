@@ -841,29 +841,54 @@ class MainWindow(QMainWindow):
         self.list_segments.selectRow(row + 1)
 
     def _apply_time_edit(self, row: int, new_start: int, new_end: int):
-        seg = self._segments[row]
+        _MIN_MS = 100
 
         if new_start >= new_end:
             QMessageBox.warning(self, "시간 오류", "시작 시간이 종료 시간보다 크거나 같습니다.")
             return
-        if row > 0 and new_start <= self._segments[row - 1]["start"]:
-            QMessageBox.warning(self, "시간 오류", "이전 구간을 소멸시킬 수 없습니다.")
-            return
-        if row < len(self._segments) - 1 and new_end >= self._segments[row + 1]["end"]:
-            QMessageBox.warning(self, "시간 오류", "다음 구간을 소멸시킬 수 없습니다.")
+
+        # 타임라인 전체 경계로 클램프
+        if self._segments:
+            new_start = max(new_start, self._segments[0]["start"])
+            new_end   = min(new_end,   self._segments[-1]["end"])
+
+        # 이전 구간 흡수 (경계를 넘어설 경우 텍스트 병합 후 삭제)
+        while row > 0 and new_start <= self._segments[row - 1]["start"]:
+            prev = self._segments.pop(row - 1)
+            row -= 1
+            self._segments[row]["text"] = (
+                prev.get("text", "") + " " + self._segments[row].get("text", "")
+            ).strip()
+
+        # 다음 구간 흡수 (경계를 넘어설 경우 텍스트 병합 후 삭제)
+        while row < len(self._segments) - 1 and new_end >= self._segments[row + 1]["end"]:
+            nxt = self._segments.pop(row + 1)
+            self._segments[row]["text"] = (
+                self._segments[row].get("text", "") + " " + nxt.get("text", "")
+            ).strip()
+
+        # 남은 인접 구간에 최소 길이 보장 (클램프)
+        if row > 0:
+            new_start = max(new_start, self._segments[row - 1]["start"] + _MIN_MS)
+        if row < len(self._segments) - 1:
+            new_end = min(new_end, self._segments[row + 1]["end"] - _MIN_MS)
+
+        if new_start >= new_end:
+            QMessageBox.warning(self, "시간 오류", "조정 가능한 범위를 초과했습니다.")
             return
 
+        # 인접 구간 경계 반영
         if row > 0:
             self._segments[row - 1]["end"] = new_start
-            self._update_table_time(row - 1)
         if row < len(self._segments) - 1:
             self._segments[row + 1]["start"] = new_end
-            self._update_table_time(row + 1)
 
-        seg["start"] = new_start
-        seg["end"]   = new_end
-        self._update_table_time(row)
+        self._segments[row]["start"] = new_start
+        self._segments[row]["end"]   = new_end
 
+        # 구간 수가 변경될 수 있으므로 전체 재렌더링
+        self._populate_segments(self._segments)
+        self.list_segments.selectRow(row)
         duration_ms = max((s["end"] for s in self._segments), default=0)
         self._waveform.set_segments(self._segments, duration_ms)
 
