@@ -3,7 +3,7 @@ from typing import Optional
 from PyQt6.QtWidgets import QMainWindow, QFileDialog, QTableWidgetItem, QPushButton, QVBoxLayout, QMessageBox, QTimeEdit, QHBoxLayout, QLabel, QAbstractItemView, QStyle
 from PyQt6.QtGui import QColor, QTextCharFormat, QTextCursor
 from PyQt6.uic import loadUi
-from PyQt6.QtCore import QSettings, QTime
+from PyQt6.QtCore import QSettings, QTime, Qt, QTimer
 from utils.resource_path import resource_path
 
 from settings_dialog import SettingsDialog
@@ -25,6 +25,7 @@ class MainWindow(QMainWindow):
         loadUi(resource_path("main_window.ui"), self)
 
         self._video_path = None
+        self._full_file_basename: str = ""
         self._ai_worker = None
         self._stt_worker = None
         self._render_worker = None
@@ -259,7 +260,19 @@ class MainWindow(QMainWindow):
         main_layout.insertWidget(0, bar)
 
     def _fix_layout(self):
-        from PyQt6.QtWidgets import QVBoxLayout
+        from PyQt6.QtWidgets import QVBoxLayout, QSizePolicy
+
+        # label_file_path: 긴 파일명이 창을 늘리지 않도록
+        self.label_file_path.setSizePolicy(
+            QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Preferred
+        )
+        self.label_file_path.setMinimumWidth(0)
+
+        # label_status: 긴 상태 메시지가 하단 바를 늘리지 않도록 (Preferred + minWidth=0)
+        self.label_status.setSizePolicy(
+            QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Preferred
+        )
+        self.label_status.setMinimumWidth(0)
 
         # 우측 패널 비율: seg_container(1) : subtitle_container(fixed)
         right_layout = self.findChild(QVBoxLayout, "layout_right")
@@ -278,6 +291,22 @@ class MainWindow(QMainWindow):
         self.video_frame.setStyleSheet("QFrame { border-radius: 0px; background-color: #000; }")
         self.timeline_frame.setStyleSheet("QFrame { border-radius: 0px; }")
         self.video_frame.installEventFilter(self)
+
+    def resizeEvent(self, event):
+        super().resizeEvent(event)
+        self._refresh_file_label()
+
+    def _refresh_file_label(self):
+        if not self._full_file_basename:
+            return
+        w = self.label_file_path.width()
+        if w <= 0:
+            QTimer.singleShot(0, self._refresh_file_label)
+            return
+        elided = self.label_file_path.fontMetrics().elidedText(
+            self._full_file_basename, Qt.TextElideMode.ElideMiddle, w
+        )
+        self.label_file_path.setText(elided)
 
     def _setup_waveform(self) -> WaveformWidget:
         waveform = WaveformWidget()
@@ -361,8 +390,9 @@ class MainWindow(QMainWindow):
 
     def _apply_video_path(self, path: str):
         self._video_path = path
-        self.label_file_path.setText(os.path.basename(path))
+        self._full_file_basename = os.path.basename(path)
         self.label_file_path.setToolTip(path)
+        self._refresh_file_label()
         self.btn_render.setEnabled(False)
         self._video_player.load(path)
 
@@ -561,7 +591,9 @@ class MainWindow(QMainWindow):
         self.btn_settings.setEnabled(True)
 
         # 결과 영상 플레이어에 로드 (원본 경로는 재렌더를 위해 유지)
-        self.label_file_path.setText(output_path)
+        self._full_file_basename = os.path.basename(output_path)
+        self.label_file_path.setToolTip(output_path)
+        self._refresh_file_label()
         self._video_player.load(output_path)
 
         self.label_status.setText("렌더링 완료 — 결과 영상을 재생해보세요")
