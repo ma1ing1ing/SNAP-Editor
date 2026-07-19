@@ -34,6 +34,7 @@ class MainWindow(QMainWindow):
         self._original_segments: list = []
         self._editing_start_ms: int = -1
         self._analysis_popup: Optional[AnalysisPopup] = None
+        self._popup_from_download = False
 
         self._video_player = VideoPlayer(self.video_frame)
         self._waveform = self._setup_waveform()
@@ -391,20 +392,49 @@ class MainWindow(QMainWindow):
         self.btn_open_url.setEnabled(False)
         self.label_status.setText("다운로드 준비 중...")
 
+        self._analysis_popup = AnalysisPopup(parent=self)
+        self._analysis_popup.setModal(True)
+        self._analysis_popup.setWindowTitle("영상 다운로드 중")
+        self._analysis_popup.update_status("영상 정보 확인 중...")
+        self._popup_from_download = True
+
         self._download_worker = DownloadWorker(url.strip())
         self._download_worker.progress_updated.connect(self._on_download_progress)
+        self._download_worker.progress_updated.connect(self._analysis_popup.update_progress)
         self._download_worker.status_changed.connect(self.label_status.setText)
+        self._download_worker.status_changed.connect(self._analysis_popup.update_status)
         self._download_worker.download_complete.connect(self._on_download_complete)
         self._download_worker.error_occurred.connect(self._on_download_error)
+
+        # 취소 버튼 → 다운로드 워커 중단
+        self._analysis_popup.rejected.connect(self._download_worker.terminate)
+        self._analysis_popup.rejected.connect(self._on_download_cancelled)
+
         self._download_worker.start()
+        self._analysis_popup.open()
 
     def _on_download_progress(self, pct: int):
         self.progress_bar.setValue(pct)
+
+    def _on_download_cancelled(self):
+        self.btn_open_file.setEnabled(True)
+        self.btn_open_url.setEnabled(True)
+        self.progress_bar.setValue(0)
+        self.label_status.setText("다운로드가 취소되었습니다")
+        self._analysis_popup = None
+        self._popup_from_download = False
+
+    def _disconnect_download_popup_signals(self):
+        if not self._analysis_popup or not self._download_worker:
+            return
+        self._analysis_popup.rejected.disconnect(self._download_worker.terminate)
+        self._analysis_popup.rejected.disconnect(self._on_download_cancelled)
 
     def _on_download_complete(self, path: str):
         self.btn_open_file.setEnabled(True)
         self.btn_open_url.setEnabled(True)
         self.progress_bar.setValue(0)
+        self._disconnect_download_popup_signals()
         self._apply_video_path(path)
         self._start_analysis()
 
@@ -412,6 +442,11 @@ class MainWindow(QMainWindow):
         self.btn_open_file.setEnabled(True)
         self.btn_open_url.setEnabled(True)
         self.progress_bar.setValue(0)
+        self._disconnect_download_popup_signals()
+        if self._analysis_popup:
+            self._analysis_popup.reject()
+            self._analysis_popup = None
+        self._popup_from_download = False
         self.label_status.setText(f"⚠ 다운로드 실패: {msg}")
         QMessageBox.warning(self, "다운로드 실패", msg)
 
@@ -456,9 +491,15 @@ class MainWindow(QMainWindow):
         if self._ai_worker and self._ai_worker.isRunning():
             return
 
-        # 팝업 생성 (안 C)
-        self._analysis_popup = AnalysisPopup(parent=self)
-        self._analysis_popup.setModal(True)
+        # 팝업 생성 (안 C) — 다운로드 직후 전환인 경우에만 기존 팝업 재사용
+        if self._popup_from_download and self._analysis_popup is not None:
+            self._analysis_popup.setWindowTitle("AI 분석 중")
+            self._analysis_popup.update_status("AI 분석 준비 중...")
+            self._analysis_popup.update_progress(0)
+        else:
+            self._analysis_popup = AnalysisPopup(parent=self)
+            self._analysis_popup.setModal(True)
+        self._popup_from_download = False
 
         settings = self._load_settings()
         self._ai_worker = AIWorker(self._video_path, settings)
@@ -522,6 +563,7 @@ class MainWindow(QMainWindow):
     def _on_analysis_error(self, message: str):
         if self._analysis_popup:
             self._analysis_popup.reject()
+            self._analysis_popup = None
         self.label_status.setText("⚠ 분석 실패 — 다시 시도해주세요")
         QMessageBox.critical(self, "분석 오류", f"{message}\n\n다시 시도해주세요.")
 
