@@ -45,7 +45,7 @@ class BackendController:
         self._progress(0)
         
         # 1. 오디오 추출
-        self._log(f"오디오 추출 중...: {input_video}")
+        self._log("오디오 추출 중...")
         self._progress(10)
         
         success = extract_audio(input_video, temp_audio)
@@ -80,7 +80,7 @@ class BackendController:
                 json.dump(detailed_json_data, f, indent=4, ensure_ascii=False)
             
         self._progress(100)
-        self._log(f"구간 분석이 완료되었습니다. 상세 결과 저장됨: {output_json}")
+        self._log("구간 분석 완료")
         
         # 🚀 [수정 포인트 3 - 멘토의 무적 방어 코드] 
         # 튜플 (0.0, 0.32)를 프론트엔드가 정확히 원하는 {"start": 0.0, "end": 0.32} 형태로 강제 변환!
@@ -189,7 +189,7 @@ class BackendController:
 
         if success:
             self._progress(100)
-            self._log(f"최종 영상 생성 완료: {output_video}")
+            self._log("최종 영상 생성 완료")
 
             # 5. 용량 절약을 위해 렌더링 과정에서 생긴 임시 파일 삭제 및 SRT 저장
             try:

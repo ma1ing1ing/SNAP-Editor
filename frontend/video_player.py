@@ -79,6 +79,7 @@ class VideoPlayer(QObject):
         if state == QMediaPlayer.PlaybackState.PlayingState and self._preview_on_load:
             self._preview_on_load = False
             self._player.pause()
+            return
         self.playing_changed.emit(state == QMediaPlayer.PlaybackState.PlayingState)
 
     def play(self):
